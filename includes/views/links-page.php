@@ -250,6 +250,7 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
 document.addEventListener('DOMContentLoaded', function () {
     renderLinksLineChart();
     renderLinksBarChart();
+    renderLinksPieChart();
 });
 
 function renderLinksLineChart() {
@@ -354,6 +355,62 @@ function renderLinksBarChart() {
         var displayValue = Number.isInteger(bar.value) ? bar.value : bar.value.toFixed(1);
         ctx.fillText(displayValue, x + (barWidth / 2), y - 6);
         ctx.fillText(bar.label, x + (barWidth / 2), height - padding + 14);
+    });
+}
+
+function renderLinksPieChart() {
+    var canvas = document.getElementById('gd-audit-links-pie');
+    if (!canvas) {
+        return;
+    }
+
+    var ctx = canvas.getContext('2d');
+    var slices = JSON.parse(canvas.getAttribute('data-pie') || '[]');
+    if (!slices.length) {
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#6c757d';
+        ctx.fillText('<?php echo esc_js(__('No distribution data', 'gd-audit')); ?>', 10, 40);
+        return;
+    }
+
+    var total = slices.reduce(function (sum, slice) {
+        return sum + slice.value;
+    }, 0);
+
+    if (total <= 0) {
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#6c757d';
+        ctx.fillText('<?php echo esc_js(__('No distribution data', 'gd-audit')); ?>', 10, 40);
+        return;
+    }
+
+    var colors = ['#198754', '#dc3545', '#0d6efd', '#ffc107'];
+    var startAngle = -Math.PI / 2;
+    var radius = Math.min(canvas.width, canvas.height) / 2 - 10;
+    var centerX = canvas.width / 2;
+    var centerY = canvas.height / 2;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    slices.forEach(function (slice, index) {
+        var sliceAngle = (slice.value / total) * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, startAngle + sliceAngle);
+        ctx.closePath();
+        ctx.fillStyle = colors[index % colors.length];
+        ctx.fill();
+
+        // Labels
+        var midAngle = startAngle + sliceAngle / 2;
+        var labelX = centerX + (radius + 10) * Math.cos(midAngle);
+        var labelY = centerY + (radius + 10) * Math.sin(midAngle);
+        ctx.fillStyle = '#000';
+        ctx.font = '12px sans-serif';
+        var percent = ((slice.value / total) * 100).toFixed(1) + '%';
+        ctx.fillText(slice.label + ' ' + percent, labelX - 20, labelY);
+
+        startAngle += sliceAngle;
     });
 }
 </script>
