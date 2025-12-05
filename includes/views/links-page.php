@@ -113,7 +113,6 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
                 <table class="widefat fixed striped gd-audit-links__table">
                     <thead>
                         <tr>
-                            <th scope="col"><?php esc_html_e('Preview', 'gd-audit'); ?></th>
                             <th scope="col"><?php esc_html_e('Title', 'gd-audit'); ?></th>
                             <th scope="col" class="column-links"><?php esc_html_e('Links', 'gd-audit'); ?></th>
                             <th scope="col"><?php esc_html_e('Actions', 'gd-audit'); ?></th>
@@ -126,22 +125,13 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
                             $post_type  = $post_obj ? get_post_type_object($post_obj->post_type) : null;
                             $type_label = $post_type ? $post_type->labels->singular_name : __('Content', 'gd-audit');
                             $post_date  = $post_obj ? get_date_from_gmt($post_obj->post_date_gmt, get_option('date_format')) : '';
-                            $media_url  = ($post_obj && has_post_thumbnail($post_obj)) ? get_the_post_thumbnail_url($post_obj, 'thumbnail') : '';
                             $excerpt    = '';
                             if ($post_obj) {
                                 $raw_excerpt = has_excerpt($post_obj) ? get_the_excerpt($post_obj) : wp_strip_all_tags($post_obj->post_content);
                                 $excerpt     = wp_trim_words($raw_excerpt, 18, '…');
                             }
-                            $placeholder_letter = strtoupper(wp_html_excerpt($post_item['title'], 1, '')) ?: '?';
                             ?>
                             <tr>
-                                <td class="gd-audit-links__preview">
-                                    <?php if ($media_url) : ?>
-                                        <img src="<?php echo esc_url($media_url); ?>" alt="" />
-                                    <?php else : ?>
-                                        <span><?php echo esc_html($placeholder_letter); ?></span>
-                                    <?php endif; ?>
-                                </td>
                                 <td>
                                     <strong><?php echo esc_html($post_item['title']); ?></strong>
                                     <span class="gd-audit__meta"><?php echo esc_html($type_label); ?> • <?php echo esc_html($post_date); ?></span>

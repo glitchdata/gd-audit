@@ -402,32 +402,6 @@
     gap: 6px;
 }
 
-.gd-audit-links__preview {
-    width: 64px;
-    height: 64px;
-}
-
-.gd-audit-links__preview img {
-    width: 64px;
-    height: 64px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
-}
-
-.gd-audit-links__preview span {
-    display: inline-flex;
-    width: 64px;
-    height: 64px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    border: 1px solid #e0e0e0;
-    background: #f8f9fa;
-    font-weight: 700;
-    color: #6c757d;
-}
-
 .gd-audit-links__excerpt {
     margin: 6px 0 0;
     color: #5c5c5c;
