@@ -41,3 +41,14 @@ function gd_audit_bootstrap() {
 add_action('plugins_loaded', 'gd_audit_bootstrap');
 
 register_activation_hook(__FILE__, ['GDAuditLogger', 'create_table']);
+
+/**
+ * Adds a shortcut to the settings screen from the plugins list.
+ */
+function gd_audit_plugin_action_links($links) {
+    $settings_url = admin_url('admin.php?page=gd-audit-settings');
+    $links[]      = '<a href="' . esc_url($settings_url) . '">' . esc_html__('Settings', 'gd-audit') . '</a>';
+
+    return $links;
+}
+add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'gd_audit_plugin_action_links');
