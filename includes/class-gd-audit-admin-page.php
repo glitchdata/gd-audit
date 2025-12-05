@@ -446,6 +446,22 @@ class GDAuditAdminPage {
                 'label' => __('Dashboard', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit'),
             ],
+            'settings' => [
+                'label' => __('Settings', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-settings'),
+            ],
+            'config' => [
+                'label' => __('Config', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-config'),
+            ],
+            'database' => [
+                'label' => __('Database', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-database'),
+            ],
+            'users' => [
+                'label' => __('Users', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-users'),
+            ],
             'plugins' => [
                 'label' => __('Plugins', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-plugins'),
@@ -454,29 +470,13 @@ class GDAuditAdminPage {
                 'label' => __('Themes', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-themes'),
             ],
-            'links' => [
-                'label' => __('Links', 'gd-audit'),
-                'url'   => admin_url('admin.php?page=gd-audit-links'),
-            ],
             'images' => [
                 'label' => __('Images', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-images'),
             ],
-            'users' => [
-                'label' => __('Users', 'gd-audit'),
-                'url'   => admin_url('admin.php?page=gd-audit-users'),
-            ],
-            'database' => [
-                'label' => __('Database', 'gd-audit'),
-                'url'   => admin_url('admin.php?page=gd-audit-database'),
-            ],
-            'config' => [
-                'label' => __('Config', 'gd-audit'),
-                'url'   => admin_url('admin.php?page=gd-audit-config'),
-            ],
-            'settings' => [
-                'label' => __('Settings', 'gd-audit'),
-                'url'   => admin_url('admin.php?page=gd-audit-settings'),
+            'links' => [
+                'label' => __('Links', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-links'),
             ],
         ];
 
