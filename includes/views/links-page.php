@@ -111,6 +111,15 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
                 </div>
             </div>
             <canvas id="gd-audit-links-chart" height="120" data-points="<?php echo esc_attr(wp_json_encode($trend_points)); ?>"></canvas>
+            <canvas
+                id="gd-audit-links-pie"
+                height="180"
+                width="180"
+                data-pie='<?php echo esc_attr(wp_json_encode([
+                    ['label' => __('Internal', 'gd-audit'), 'value' => (int) $internal],
+                    ['label' => __('External', 'gd-audit'), 'value' => (int) $external],
+                ])); ?>'
+            ></canvas>
         </section>
     </div>
 
