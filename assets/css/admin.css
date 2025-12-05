@@ -167,6 +167,12 @@
     font-weight: 600;
 }
 
+.gd-audit__divider {
+    margin: 24px 0;
+    border: 0;
+    border-top: 1px solid #e0e0e0;
+}
+
 .gd-audit__panels {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

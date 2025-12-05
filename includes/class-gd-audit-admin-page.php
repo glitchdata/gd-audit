@@ -53,6 +53,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Dashboard', 'gd-audit'),
+            __('Dashboard', 'gd-audit'),
+            'manage_options',
+            'gd-audit',
+            [$this, 'render_dashboard_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Settings', 'gd-audit'),
             __('Settings', 'gd-audit'),
             'manage_options',

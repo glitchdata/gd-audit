@@ -34,6 +34,8 @@ $manage_url    = admin_url('plugins.php');
         </article>
     </section>
 
+    <hr class="gd-audit__divider" />
+
     <table class="wp-list-table widefat fixed striped gd-audit__table">
         <thead>
             <tr>
