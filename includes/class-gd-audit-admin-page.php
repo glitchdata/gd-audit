@@ -235,12 +235,162 @@ class GDAuditAdminPage {
      * Renders the dashboard analytics page.
      */
     public function render_dashboard_page() {
-        $status_totals = $this->analytics->get_post_status_totals();
-        $daily_activity= $this->analytics->get_daily_post_activity();
-        $recent_posts  = $this->analytics->get_recent_published_posts();
-        $top_authors   = $this->analytics->get_top_authors();
-
         $nav_tabs = $this->get_nav_tabs('dashboard');
+
+        $settings_data     = $this->settings->get_settings();
+        $enabled_events    = isset($settings_data['enabled_events']) ? (array) $settings_data['enabled_events'] : [];
+        $enabled_event_count = count($enabled_events);
+        $retention_days    = isset($settings_data['retention_days']) ? (int) $settings_data['retention_days'] : 0;
+        $retention_label   = $retention_days > 0
+            ? sprintf(_n('%d day', '%d days', $retention_days, 'gd-audit'), $retention_days)
+            : __('No limit', 'gd-audit');
+
+        $logs_total        = $this->logger->count_logs();
+
+        $plugins           = $this->plugin_inspector->get_plugins();
+        $plugin_total      = count($plugins);
+        $plugin_active     = count(array_filter($plugins, fn($plugin) => !empty($plugin['active'])));
+        $plugin_updates    = count(array_filter($plugins, fn($plugin) => !empty($plugin['has_update'])));
+
+        $themes            = $this->theme_inspector->get_themes();
+        $active_theme      = current(array_filter($themes, fn($theme) => !empty($theme['is_active'])));
+        $theme_name        = $active_theme['name'] ?? __('Unknown theme', 'gd-audit');
+        $theme_version     = $active_theme['version'] ?? '';
+        $theme_updates     = count(array_filter($themes, fn($theme) => !empty($theme['has_update'])));
+
+        $link_report       = $this->analytics->get_link_analytics([
+            'sample_size' => 50,
+        ]);
+        $links_overview    = $link_report['overview'];
+
+        $image_overview    = $this->analytics->get_image_overview();
+
+        $user_roles        = $this->analytics->get_user_role_distribution();
+        $total_users       = $user_roles['total'];
+        $role_rows         = $user_roles['roles'];
+        $admin_count       = 0;
+        foreach ($role_rows as $role) {
+            if ('administrator' === $role['role']) {
+                $admin_count = $role['count'];
+                break;
+            }
+        }
+
+        $tables            = $this->database_inspector->get_tables();
+        $database_summary  = $this->database_inspector->get_summary($tables);
+
+        $config_overview   = $this->analytics->get_site_configuration_overview();
+        $config_summary    = $config_overview['summary'];
+
+        $dashboard_tiles   = [
+            [
+                'key'           => 'logs',
+                'label'         => __('Logs', 'gd-audit'),
+                'description'   => __('Audit every captured system event.', 'gd-audit'),
+                'primary_value' => number_format_i18n($logs_total),
+                'primary_label' => __('Events logged', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Retention: %s', 'gd-audit'), $retention_label),
+                    sprintf(__('IP masking: %s', 'gd-audit'), !empty($settings_data['mask_ip']) ? __('On', 'gd-audit') : __('Off', 'gd-audit')),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-logs'),
+            ],
+            [
+                'key'           => 'plugins',
+                'label'         => __('Plugins', 'gd-audit'),
+                'description'   => __('Track active code and pending updates.', 'gd-audit'),
+                'primary_value' => number_format_i18n($plugin_active) . '/' . number_format_i18n($plugin_total),
+                'primary_label' => __('Active plugins', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Updates pending: %s', 'gd-audit'), number_format_i18n($plugin_updates)),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-plugins'),
+            ],
+            [
+                'key'           => 'themes',
+                'label'         => __('Themes', 'gd-audit'),
+                'description'   => __('Review active, child, and parent themes.', 'gd-audit'),
+                'primary_value' => $theme_name,
+                'primary_label' => $theme_version ? sprintf(__('Version %s', 'gd-audit'), $theme_version) : __('Version N/A', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Theme updates: %s', 'gd-audit'), number_format_i18n($theme_updates)),
+                    sprintf(__('Child theme: %s', 'gd-audit'), !empty($active_theme['is_child']) ? __('Yes', 'gd-audit') : __('No', 'gd-audit')),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-themes'),
+            ],
+            [
+                'key'           => 'links',
+                'label'         => __('Links', 'gd-audit'),
+                'description'   => __('Compare internal vs external link patterns.', 'gd-audit'),
+                'primary_value' => number_format_i18n($links_overview['total'] ?? 0),
+                'primary_label' => __('Links analyzed', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Internal: %s', 'gd-audit'), number_format_i18n($links_overview['internal'] ?? 0)),
+                    sprintf(__('External: %s', 'gd-audit'), number_format_i18n($links_overview['external'] ?? 0)),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-links'),
+            ],
+            [
+                'key'           => 'images',
+                'label'         => __('Images', 'gd-audit'),
+                'description'   => __('Keep an eye on the media library.', 'gd-audit'),
+                'primary_value' => number_format_i18n($image_overview['total']),
+                'primary_label' => __('Images stored', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Library size: %s', 'gd-audit'), size_format($image_overview['total_size'], 2)),
+                    sprintf(__('Average file: %s', 'gd-audit'), size_format($image_overview['avg_size'], 2)),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-images'),
+            ],
+            [
+                'key'           => 'users',
+                'label'         => __('Users', 'gd-audit'),
+                'description'   => __('Understand who can access the site.', 'gd-audit'),
+                'primary_value' => number_format_i18n($total_users),
+                'primary_label' => __('Registered users', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Admins: %s', 'gd-audit'), number_format_i18n($admin_count)),
+                    sprintf(__('Roles tracked: %s', 'gd-audit'), number_format_i18n(count($role_rows))),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-users'),
+            ],
+            [
+                'key'           => 'database',
+                'label'         => __('Database', 'gd-audit'),
+                'description'   => __('Inspect table health and footprint.', 'gd-audit'),
+                'primary_value' => number_format_i18n($database_summary['total_tables']),
+                'primary_label' => __('Tables detected', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Total size: %s', 'gd-audit'), size_format($database_summary['data_size'] + $database_summary['index_size'], 2)),
+                    sprintf(__('WP tables: %s', 'gd-audit'), number_format_i18n($database_summary['wp_tables'])),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-database'),
+            ],
+            [
+                'key'           => 'config',
+                'label'         => __('Config', 'gd-audit'),
+                'description'   => __('Snapshot of core runtime settings.', 'gd-audit'),
+                'primary_value' => get_bloginfo('version'),
+                'primary_label' => __('WordPress version', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('PHP: %s', 'gd-audit'), PHP_VERSION),
+                    sprintf(__('Theme: %s', 'gd-audit'), $theme_name),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-config'),
+            ],
+            [
+                'key'           => 'settings',
+                'label'         => __('Settings', 'gd-audit'),
+                'description'   => __('Tune what gets logged and retained.', 'gd-audit'),
+                'primary_value' => number_format_i18n($enabled_event_count),
+                'primary_label' => __('Events monitored', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Retention: %s', 'gd-audit'), $retention_label),
+                    sprintf(__('IP masking: %s', 'gd-audit'), !empty($settings_data['mask_ip']) ? __('On', 'gd-audit') : __('Off', 'gd-audit')),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-settings'),
+            ],
+        ];
 
         include GD_AUDIT_PLUGIN_DIR . 'includes/views/dashboard-page.php';
     }
