@@ -10,11 +10,14 @@ if (!defined('ABSPATH')) {
 class GDAuditLogger {
     /** @var string */
     private $table_name;
+    /** @var GDAuditSettings */
+    private $settings;
 
-    public function __construct() {
+    public function __construct(GDAuditSettings $settings) {
         global $wpdb;
 
         $this->table_name = $wpdb->prefix . 'gd_audit_logs';
+        $this->settings   = $settings;
 
         add_action('transition_post_status', [$this, 'capture_post_status'], 10, 3);
         add_action('profile_update', [$this, 'capture_profile_update'], 10, 2);
@@ -265,7 +268,13 @@ class GDAuditLogger {
      * Writes a row to the audit log table.
      */
     private function log_event($event_type, $object_type, $object_id, $message, $context = []) {
+        if (!$this->settings->is_event_enabled($event_type)) {
+            return;
+        }
+
         global $wpdb;
+
+        $ip_address = $this->settings->should_mask_ip() ? '' : $this->get_ip_address();
 
         $wpdb->insert(
             $this->table_name,
@@ -276,13 +285,15 @@ class GDAuditLogger {
                 'user_id'    => get_current_user_id() ?: null,
                 'message'    => wp_strip_all_tags($message),
                 'context'    => $context ? wp_json_encode($context) : null,
-                'ip_address' => $this->get_ip_address(),
+                'ip_address' => $ip_address,
                 'created_at' => current_time('mysql', true),
             ],
             [
                 '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s',
             ]
         );
+
+        $this->maybe_prune_logs();
     }
 
     /**
@@ -294,5 +305,26 @@ class GDAuditLogger {
         }
 
         return sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
+    }
+
+    /**
+     * Deletes logs older than the configured retention window.
+     */
+    private function maybe_prune_logs() {
+        $retention_days = $this->settings->get_retention_days();
+
+        if ($retention_days <= 0) {
+            return;
+        }
+
+        global $wpdb;
+
+        $cutoff = gmdate('Y-m-d H:i:s', time() - (DAY_IN_SECONDS * $retention_days));
+        $wpdb->query(
+            $wpdb->prepare(
+                "DELETE FROM {$this->table_name} WHERE created_at < %s",
+                $cutoff
+            )
+        );
     }
 }

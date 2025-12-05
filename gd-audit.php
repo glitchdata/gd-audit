@@ -19,6 +19,7 @@ define('GD_AUDIT_PLUGIN_FILE', __FILE__);
 define('GD_AUDIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GD_AUDIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
+require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-settings.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-logger.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-admin-page.php';
 
@@ -29,9 +30,10 @@ function gd_audit_bootstrap() {
     static $container = null;
 
     if (null === $container) {
-        $container            = new stdClass();
-        $container->logger    = new GDAuditLogger();
-        $container->adminPage = new GDAuditAdminPage($container->logger);
+        $container             = new stdClass();
+        $container->settings   = new GDAuditSettings();
+        $container->logger     = new GDAuditLogger($container->settings);
+        $container->admin_page = new GDAuditAdminPage($container->logger, $container->settings);
     }
 
     return $container;

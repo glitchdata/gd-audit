@@ -10,29 +10,44 @@ if (!defined('ABSPATH')) {
 class GDAuditAdminPage {
     /** @var GDAuditLogger */
     private $logger;
+    /** @var GDAuditSettings */
+    private $settings;
 
-    public function __construct(GDAuditLogger $logger) {
-        $this->logger = $logger;
+    public function __construct(GDAuditLogger $logger, GDAuditSettings $settings) {
+        $this->logger   = $logger;
+        $this->settings = $settings;
 
         add_action('admin_menu', [$this, 'register_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
         add_filter('set_screen_option_gd_audit_per_page', [$this, 'set_screen_option'], 10, 3);
+        add_action('admin_init', [$this, 'register_settings']);
     }
 
     /**
-     * Registers the menu entry under Tools.
+     * Registers the top-level GD Audit menu and subpages.
      */
     public function register_menu() {
-        $hook = add_submenu_page(
-            'tools.php',
+        $hook = add_menu_page(
             __('GD Audit', 'gd-audit'),
             __('GD Audit', 'gd-audit'),
             'manage_options',
             'gd-audit',
-            [$this, 'render_page']
+            [$this, 'render_page'],
+            'dashicons-visibility',
+            65
         );
 
         add_action("load-$hook", [$this, 'add_screen_options']);
+        add_action('load-gd-audit_page_gd-audit', [$this, 'add_screen_options']);
+
+        add_submenu_page(
+            'gd-audit',
+            __('Settings', 'gd-audit'),
+            __('Settings', 'gd-audit'),
+            'manage_options',
+            'gd-audit-settings',
+            [$this, 'render_settings_page']
+        );
     }
 
     /**
@@ -64,7 +79,9 @@ class GDAuditAdminPage {
      * Loads CSS for the admin UI.
      */
     public function enqueue_assets($hook) {
-        if ('tools_page_gd-audit' !== $hook) {
+        $allowed_hooks = ['toplevel_page_gd-audit', 'gd-audit_page_gd-audit', 'gd-audit_page_gd-audit-settings'];
+
+        if (!in_array($hook, $allowed_hooks, true)) {
             return;
         }
 
@@ -73,6 +90,17 @@ class GDAuditAdminPage {
             GD_AUDIT_PLUGIN_URL . 'assets/css/admin.css',
             [],
             GD_AUDIT_VERSION
+        );
+    }
+
+    /**
+     * Registers the settings and sanitization callbacks.
+     */
+    public function register_settings() {
+        register_setting(
+            'gd_audit_settings_group',
+            GDAuditSettings::OPTION_KEY,
+            [$this->settings, 'sanitize']
         );
     }
 
@@ -98,6 +126,17 @@ class GDAuditAdminPage {
         $total_pages= max(1, ceil($total / $per_page));
 
         include GD_AUDIT_PLUGIN_DIR . 'includes/views/admin-page.php';
+    }
+
+    /**
+     * Outputs the settings form.
+     */
+    public function render_settings_page() {
+        $settings       = $this->settings->get_settings();
+        $events         = $this->settings->get_available_events();
+        $option_key     = GDAuditSettings::OPTION_KEY;
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/settings-page.php';
     }
 
     /**

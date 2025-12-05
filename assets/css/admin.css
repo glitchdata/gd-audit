@@ -5,6 +5,22 @@
     margin-bottom: 20px;
 }
 
+.gd-audit__settings-form fieldset {
+    border: 1px solid #dcdcdc;
+    padding: 16px;
+    margin: 0 0 24px;
+    max-width: 520px;
+    background: #fff;
+}
+
+.gd-audit__checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
 .gd-audit__filters label {
     display: flex;
     flex-direction: column;
