@@ -9,6 +9,7 @@ GD Audit is a lightweight WordPress plugin that records key user actions, surfac
 - Dashboard tab surfaces post analytics (status totals, daily publish trend, top authors, and recent publications).
 - Plugins tab lists every installed plugin with activation status and update availability signals.
 - Themes tab inventories installed themes, highlighting the active/child themes and pending updates.
+- Images tab highlights library size, file-type distribution, and the latest uploads with quick edit links.
 - Users tab surfaces registration trends, role distribution, and the latest signups.
 - Database tab reports on table counts, storage consumption, and index usage.
 - Allows enabling/disabling individual event types, enforcing retention windows, and masking IP addresses.
@@ -23,11 +24,12 @@ GD Audit is a lightweight WordPress plugin that records key user actions, surfac
 1. Navigate to `GD Audit → Dashboard` to review the latest post analytics.
 2. Use `GD Audit → Plugins` to audit installed extensions, see which are active, and spot pending updates.
 3. Visit `GD Audit → Themes` to check which themes are installed, identify child themes, and review update availability.
-4. Review `GD Audit → Users` for registration trends, role distribution, and quick access to recent profiles.
-5. Inspect `GD Audit → Database` to monitor table sizes, row counts, and index usage.
-6. Switch to `GD Audit → Logs` to review the event stream and apply filters.
-7. Expand any log row to view the stored context JSON.
-8. Configure capture rules, retention, and privacy controls under `GD Audit → Settings`.
+4. Audit `GD Audit → Images` for library usage, mime breakdowns, and recent uploads.
+5. Review `GD Audit → Users` for registration trends, role distribution, and quick access to recent profiles.
+6. Inspect `GD Audit → Database` to monitor table sizes, row counts, and index usage.
+7. Switch to `GD Audit → Logs` to review the event stream and apply filters.
+8. Expand any log row to view the stored context JSON.
+9. Configure capture rules, retention, and privacy controls under `GD Audit → Settings`.
 
 ## Development
 - Minimum WordPress version: 6.0
