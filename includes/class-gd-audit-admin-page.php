@@ -53,6 +53,42 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Settings', 'gd-audit'),
+            __('Settings', 'gd-audit'),
+            'manage_options',
+            'gd-audit-settings',
+            [$this, 'render_settings_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
+            __('Config', 'gd-audit'),
+            __('Config', 'gd-audit'),
+            'manage_options',
+            'gd-audit-config',
+            [$this, 'render_config_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
+            __('Database', 'gd-audit'),
+            __('Database', 'gd-audit'),
+            'manage_options',
+            'gd-audit-database',
+            [$this, 'render_database_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
+            __('Users', 'gd-audit'),
+            __('Users', 'gd-audit'),
+            'manage_options',
+            'gd-audit-users',
+            [$this, 'render_users_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Plugins', 'gd-audit'),
             __('Plugins', 'gd-audit'),
             'manage_options',
@@ -71,15 +107,6 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
-            __('Links', 'gd-audit'),
-            __('Links', 'gd-audit'),
-            'manage_options',
-            'gd-audit-links',
-            [$this, 'render_links_page']
-        );
-
-        add_submenu_page(
-            'gd-audit',
             __('Images', 'gd-audit'),
             __('Images', 'gd-audit'),
             'manage_options',
@@ -89,38 +116,11 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
-            __('Users', 'gd-audit'),
-            __('Users', 'gd-audit'),
+            __('Links', 'gd-audit'),
+            __('Links', 'gd-audit'),
             'manage_options',
-            'gd-audit-users',
-            [$this, 'render_users_page']
-        );
-
-        add_submenu_page(
-            'gd-audit',
-            __('Database', 'gd-audit'),
-            __('Database', 'gd-audit'),
-            'manage_options',
-            'gd-audit-database',
-            [$this, 'render_database_page']
-        );
-
-        add_submenu_page(
-            'gd-audit',
-            __('Config', 'gd-audit'),
-            __('Config', 'gd-audit'),
-            'manage_options',
-            'gd-audit-config',
-            [$this, 'render_config_page']
-        );
-
-        add_submenu_page(
-            'gd-audit',
-            __('Settings', 'gd-audit'),
-            __('Settings', 'gd-audit'),
-            'manage_options',
-            'gd-audit-settings',
-            [$this, 'render_settings_page']
+            'gd-audit-links',
+            [$this, 'render_links_page']
         );
     }
 
