@@ -14,11 +14,19 @@ class GDAuditAdminPage {
     private $settings;
     /** @var GDAuditAnalytics */
     private $analytics;
+    /** @var GDAuditPluginInspector */
+    private $plugin_inspector;
 
-    public function __construct(GDAuditLogger $logger, GDAuditSettings $settings, GDAuditAnalytics $analytics) {
-        $this->logger    = $logger;
-        $this->settings  = $settings;
-        $this->analytics = $analytics;
+    public function __construct(
+        GDAuditLogger $logger,
+        GDAuditSettings $settings,
+        GDAuditAnalytics $analytics,
+        GDAuditPluginInspector $plugin_inspector
+    ) {
+        $this->logger           = $logger;
+        $this->settings         = $settings;
+        $this->analytics        = $analytics;
+        $this->plugin_inspector = $plugin_inspector;
 
         add_action('admin_menu', [$this, 'register_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
@@ -47,6 +55,15 @@ class GDAuditAdminPage {
             'manage_options',
             'gd-audit-logs',
             [$this, 'render_logs_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
+            __('Plugins', 'gd-audit'),
+            __('Plugins', 'gd-audit'),
+            'manage_options',
+            'gd-audit-plugins',
+            [$this, 'render_plugins_page']
         );
 
         add_submenu_page(
@@ -90,7 +107,13 @@ class GDAuditAdminPage {
      * Loads CSS for the admin UI.
      */
     public function enqueue_assets($hook) {
-        $allowed_hooks = ['toplevel_page_gd-audit', 'gd-audit_page_gd-audit', 'gd-audit_page_gd-audit-logs', 'gd-audit_page_gd-audit-settings'];
+        $allowed_hooks = [
+            'toplevel_page_gd-audit',
+            'gd-audit_page_gd-audit',
+            'gd-audit_page_gd-audit-logs',
+            'gd-audit_page_gd-audit-plugins',
+            'gd-audit_page_gd-audit-settings',
+        ];
 
         if (!in_array($hook, $allowed_hooks, true)) {
             return;
@@ -155,6 +178,19 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays the installed plugins overview.
+     */
+    public function render_plugins_page() {
+        $plugins        = $this->plugin_inspector->get_plugins();
+        $active_count   = count(array_filter($plugins, fn($plugin) => !empty($plugin['active'])));
+        $inactive_count = max(0, count($plugins) - $active_count);
+        $update_count   = count(array_filter($plugins, fn($plugin) => !empty($plugin['has_update'])));
+        $nav_tabs       = $this->get_nav_tabs('plugins');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/plugins-page.php';
+    }
+
+    /**
      * Outputs the settings form.
      */
     public function render_settings_page() {
@@ -178,6 +214,10 @@ class GDAuditAdminPage {
             'logs' => [
                 'label' => __('Logs', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-logs'),
+            ],
+            'plugins' => [
+                'label' => __('Plugins', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-plugins'),
             ],
             'settings' => [
                 'label' => __('Settings', 'gd-audit'),

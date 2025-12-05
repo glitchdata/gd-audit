@@ -153,3 +153,41 @@
     font-size: 0.9rem;
     margin-top: 2px;
 }
+
+.gd-audit__table .description {
+    margin: 4px 0;
+}
+
+.gd-audit__badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-right: 6px;
+}
+
+.gd-audit__badge.is-active {
+    background: #e6f6ed;
+    color: #157347;
+}
+
+.gd-audit__badge.is-inactive {
+    background: #f4f4f4;
+    color: #5c5c5c;
+}
+
+.gd-audit__badge.is-update {
+    background: #fff4e5;
+    color: #b34700;
+}
+
+.gd-audit__link {
+    text-decoration: none;
+}
+
+.gd-audit__link:hover {
+    text-decoration: underline;
+}
