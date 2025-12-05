@@ -82,6 +82,15 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
                     <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($avg_links, 1)); ?></p>
                 </article>
             </div>
+            <canvas
+                id="gd-audit-links-bars"
+                height="180"
+                data-bars='<?php echo esc_attr(wp_json_encode([
+                    ['label' => __('Internal', 'gd-audit'), 'value' => (int) $internal],
+                    ['label' => __('External', 'gd-audit'), 'value' => (int) $external],
+                    ['label' => __('Total', 'gd-audit'), 'value' => (int) $total_links],
+                ])); ?>'
+            ></canvas>
         </section>
 
         <section class="gd-audit-card">
@@ -229,6 +238,11 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    renderLinksLineChart();
+    renderLinksBarChart();
+});
+
+function renderLinksLineChart() {
     var canvas = document.getElementById('gd-audit-links-chart');
     if (!canvas) {
         return;
@@ -283,5 +297,56 @@ document.addEventListener('DOMContentLoaded', function () {
         ctx.arc(x, y, 3, 0, Math.PI * 2);
         ctx.fill();
     });
-});
+}
+
+function renderLinksBarChart() {
+    var canvas = document.getElementById('gd-audit-links-bars');
+    if (!canvas) {
+        return;
+    }
+
+    var ctx = canvas.getContext('2d');
+    var bars = JSON.parse(canvas.getAttribute('data-bars') || '[]');
+    if (!bars.length) {
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#6c757d';
+        ctx.fillText('<?php echo esc_js(__('No snapshot data available', 'gd-audit')); ?>', 10, 40);
+        return;
+    }
+
+    var width = canvas.width;
+    var height = canvas.height;
+    var padding = 24;
+    var barWidth = ((width - padding * 2) / bars.length) * 0.6;
+    var maxValue = Math.max.apply(null, bars.map(function (bar) { return bar.value; }));
+    if (maxValue <= 0) {
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#6c757d';
+        ctx.fillText('<?php echo esc_js(__('Values too small to chart', 'gd-audit')); ?>', 10, 40);
+        return;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#0d6efd';
+    ctx.textAlign = 'center';
+    ctx.font = '12px sans-serif';
+
+    bars.forEach(function (bar, index) {
+        var x = padding + (index * ((width - padding * 2) / bars.length)) + (((width - padding * 2) / bars.length) - barWidth) / 2;
+        var barHeight = (bar.value / maxValue) * (height - padding * 2);
+        var y = height - padding - barHeight;
+
+        ctx.fillStyle = '#0d6efd';
+        if (bar.label.toLowerCase().indexOf('external') !== -1) {
+            ctx.fillStyle = '#dc3545';
+        }
+
+        ctx.fillRect(x, y, barWidth, barHeight);
+
+        ctx.fillStyle = '#000';
+        ctx.fillText(bar.value, x + (barWidth / 2), y - 6);
+        ctx.fillText(bar.label, x + (barWidth / 2), height - padding + 14);
+    });
+}
+</script>
 </script>
