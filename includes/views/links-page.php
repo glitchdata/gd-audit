@@ -182,21 +182,42 @@ if ($external_pct >= 60) {
                         $post_type  = $post_obj ? get_post_type_object($post_obj->post_type) : null;
                         $type_label = $post_type ? $post_type->labels->singular_name : __('Content', 'gd-audit');
                         $post_date  = $post_obj ? get_date_from_gmt($post_obj->post_date_gmt, get_option('date_format')) : '';
+                        $media_url  = ($post_obj && has_post_thumbnail($post_obj)) ? get_the_post_thumbnail_url($post_obj, 'medium') : '';
+                        $excerpt    = '';
+                        if ($post_obj) {
+                            $raw_excerpt = has_excerpt($post_obj) ? get_the_excerpt($post_obj) : wp_strip_all_tags($post_obj->post_content);
+                            $excerpt     = wp_trim_words($raw_excerpt, 24, '…');
+                        }
+                        $placeholder_letter = strtoupper(wp_html_excerpt($post_item['title'], 1, '')) ?: '?';
                         ?>
                         <li>
                             <div class="gd-audit-links__post-card-header">
                                 <span class="gd-audit-links__chip"><?php echo esc_html($type_label); ?></span>
                                 <span class="gd-audit__meta"><?php echo esc_html($post_date); ?></span>
                             </div>
-                            <strong><?php echo esc_html($post_item['title']); ?></strong>
-                            <p class="gd-audit__meta"><?php printf(esc_html__('%s total links', 'gd-audit'), esc_html(number_format_i18n($post_item['count']))); ?></p>
-                            <div class="gd-audit-links__actions">
-                                <?php if (!empty($post_item['edit_url'])) : ?>
-                                    <a class="gd-audit-links__action" href="<?php echo esc_url($post_item['edit_url']); ?>"><?php esc_html_e('Edit', 'gd-audit'); ?></a>
-                                <?php endif; ?>
-                                <?php if (!empty($post_item['view_url'])) : ?>
-                                    <a class="gd-audit-links__action" href="<?php echo esc_url($post_item['view_url']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('View', 'gd-audit'); ?></a>
-                                <?php endif; ?>
+                            <div class="gd-audit-links__post-body">
+                                <div class="gd-audit-links__post-media">
+                                    <?php if ($media_url) : ?>
+                                        <img src="<?php echo esc_url($media_url); ?>" alt="" />
+                                    <?php else : ?>
+                                        <span class="gd-audit-links__media-placeholder" aria-hidden="true"><?php echo esc_html($placeholder_letter); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <div>
+                                    <strong><?php echo esc_html($post_item['title']); ?></strong>
+                                    <?php if ($excerpt) : ?>
+                                        <p class="gd-audit-links__excerpt"><?php echo esc_html($excerpt); ?></p>
+                                    <?php endif; ?>
+                                    <p class="gd-audit__meta"><?php printf(esc_html__('%s total links', 'gd-audit'), esc_html(number_format_i18n($post_item['count']))); ?></p>
+                                    <div class="gd-audit-links__actions">
+                                        <?php if (!empty($post_item['edit_url'])) : ?>
+                                            <a class="gd-audit-links__action" href="<?php echo esc_url($post_item['edit_url']); ?>"><?php esc_html_e('Edit', 'gd-audit'); ?></a>
+                                        <?php endif; ?>
+                                        <?php if (!empty($post_item['view_url'])) : ?>
+                                            <a class="gd-audit-links__action" href="<?php echo esc_url($post_item['view_url']); ?>" target="_blank" rel="noopener noreferrer"><?php esc_html_e('View', 'gd-audit'); ?></a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
                             </div>
                         </li>
                     <?php endforeach; ?>
