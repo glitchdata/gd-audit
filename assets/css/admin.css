@@ -5,6 +5,19 @@
     margin-bottom: 20px;
 }
 
+.gd-audit__section-title {
+    margin: 24px 0 16px;
+    font-size: 1.5rem;
+}
+
+.gd-audit__tabs .nav-tab-wrapper {
+    margin-top: 12px;
+}
+
+.gd-audit__tabs {
+    margin-bottom: 12px;
+}
+
 .gd-audit__settings-form fieldset {
     border: 1px solid #dcdcdc;
     padding: 16px;
@@ -41,4 +54,102 @@
     padding: 8px;
     font-size: 12px;
     overflow-x: auto;
+}
+
+.gd-audit__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 16px;
+}
+
+.gd-audit__card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 16px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.gd-audit__card-label {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #6b6b6b;
+    text-transform: uppercase;
+}
+
+.gd-audit__card-value {
+    margin: 4px 0 0;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.gd-audit__panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+    margin-top: 24px;
+}
+
+.gd-audit__panel {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 20px;
+}
+
+.gd-audit__panel h2 {
+    margin-top: 0;
+}
+
+.gd-audit__sparkline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.gd-audit__sparkline li {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 6px 0;
+    font-size: 0.95rem;
+}
+
+.gd-audit__sparkline li:last-child {
+    border-bottom: 0;
+}
+
+.gd-audit__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.gd-audit__list li {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 6px 0;
+}
+
+.gd-audit__recent-posts {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.gd-audit__recent-posts li {
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.gd-audit__recent-posts li:last-child {
+    border-bottom: 0;
+}
+
+.gd-audit__meta {
+    display: block;
+    color: #6b6b6b;
+    font-size: 0.9rem;
+    margin-top: 2px;
 }

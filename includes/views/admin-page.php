@@ -8,8 +8,10 @@ if (!defined('ABSPATH')) {
 }
 
 ?>
-<div class="wrap gd-audit">
-    <h1><?php esc_html_e('GD Audit Logs', 'gd-audit'); ?></h1>
+<div class="wrap gd-audit gd-audit-logs">
+    <?php include GD_AUDIT_PLUGIN_DIR . 'includes/views/partials/nav-tabs.php'; ?>
+
+    <h1 class="gd-audit__section-title"><?php esc_html_e('Logs', 'gd-audit'); ?></h1>
 
     <form method="get" class="gd-audit__filters">
         <input type="hidden" name="page" value="gd-audit" />

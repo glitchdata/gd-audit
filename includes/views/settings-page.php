@@ -9,7 +9,9 @@ if (!defined('ABSPATH')) {
 
 ?>
 <div class="wrap gd-audit gd-audit-settings">
-    <h1><?php esc_html_e('GD Audit Settings', 'gd-audit'); ?></h1>
+    <?php include GD_AUDIT_PLUGIN_DIR . 'includes/views/partials/nav-tabs.php'; ?>
+
+    <h1 class="gd-audit__section-title"><?php esc_html_e('Settings', 'gd-audit'); ?></h1>
 
     <form method="post" action="options.php" class="gd-audit__settings-form">
         <?php settings_fields('gd_audit_settings_group'); ?>

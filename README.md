@@ -5,7 +5,8 @@ GD Audit is a lightweight WordPress plugin that records key user actions, surfac
 ## Features
 - Tracks post status changes, user profile edits, registrations, deletions, and logins.
 - Stores audit records in a dedicated custom table to avoid bloating core logs.
-- Adds a dedicated top-level `GD Audit` admin menu with a Logs dashboard and Settings page.
+- Adds a dedicated top-level `GD Audit` admin menu with Dashboard, Logs, and Settings tabs.
+- Dashboard tab surfaces post analytics (status totals, daily publish trend, top authors, and recent publications).
 - Allows enabling/disabling individual event types, enforcing retention windows, and masking IP addresses.
 - Supports pagination preferences per user and shows contextual metadata (post type, user roles, etc.) in expandable sections.
 
@@ -15,8 +16,8 @@ GD Audit is a lightweight WordPress plugin that records key user actions, surfac
 3. On activation, the plugin automatically creates the `wp_gd_audit_logs` table.
 
 ## Usage
-1. Navigate to `GD Audit → Logs`.
-2. Use the filters at the top to narrow down events.
+1. Navigate to `GD Audit → Dashboard` to review the latest post analytics.
+2. Switch to `GD Audit → Logs` to review the event stream and apply filters.
 3. Expand any log row to view the stored context JSON.
 4. Configure capture rules, retention, and privacy controls under `GD Audit → Settings`.
 

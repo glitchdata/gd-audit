@@ -12,10 +12,13 @@ class GDAuditAdminPage {
     private $logger;
     /** @var GDAuditSettings */
     private $settings;
+    /** @var GDAuditAnalytics */
+    private $analytics;
 
-    public function __construct(GDAuditLogger $logger, GDAuditSettings $settings) {
-        $this->logger   = $logger;
-        $this->settings = $settings;
+    public function __construct(GDAuditLogger $logger, GDAuditSettings $settings, GDAuditAnalytics $analytics) {
+        $this->logger    = $logger;
+        $this->settings  = $settings;
+        $this->analytics = $analytics;
 
         add_action('admin_menu', [$this, 'register_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
@@ -32,13 +35,19 @@ class GDAuditAdminPage {
             __('GD Audit', 'gd-audit'),
             'manage_options',
             'gd-audit',
-            [$this, 'render_page'],
+            [$this, 'render_dashboard_page'],
             'dashicons-visibility',
             65
         );
 
-        add_action("load-$hook", [$this, 'add_screen_options']);
-        add_action('load-gd-audit_page_gd-audit', [$this, 'add_screen_options']);
+        add_submenu_page(
+            'gd-audit',
+            __('Logs', 'gd-audit'),
+            __('Logs', 'gd-audit'),
+            'manage_options',
+            'gd-audit-logs',
+            [$this, 'render_logs_page']
+        );
 
         add_submenu_page(
             'gd-audit',
@@ -48,6 +57,8 @@ class GDAuditAdminPage {
             'gd-audit-settings',
             [$this, 'render_settings_page']
         );
+
+        add_action('load-gd-audit_page_gd-audit-logs', [$this, 'add_screen_options']);
     }
 
     /**
@@ -79,7 +90,7 @@ class GDAuditAdminPage {
      * Loads CSS for the admin UI.
      */
     public function enqueue_assets($hook) {
-        $allowed_hooks = ['toplevel_page_gd-audit', 'gd-audit_page_gd-audit', 'gd-audit_page_gd-audit-settings'];
+        $allowed_hooks = ['toplevel_page_gd-audit', 'gd-audit_page_gd-audit', 'gd-audit_page_gd-audit-logs', 'gd-audit_page_gd-audit-settings'];
 
         if (!in_array($hook, $allowed_hooks, true)) {
             return;
@@ -105,9 +116,9 @@ class GDAuditAdminPage {
     }
 
     /**
-     * Renders the audit page with filters and table.
+     * Renders the audit logs page with filters and table.
      */
-    public function render_page() {
+    public function render_logs_page() {
         $per_page = $this->get_per_page();
         $paged    = max(1, (int) ($_GET['paged'] ?? 1));
 
@@ -120,23 +131,66 @@ class GDAuditAdminPage {
             'offset'     => ($paged - 1) * $per_page,
         ];
 
-        $logs       = $this->logger->get_logs($filters);
-        $total      = $this->logger->count_logs($filters);
-        $eventTypes = $this->logger->get_event_types();
-        $total_pages= max(1, ceil($total / $per_page));
+        $logs        = $this->logger->get_logs($filters);
+        $total       = $this->logger->count_logs($filters);
+        $eventTypes  = $this->logger->get_event_types();
+        $total_pages = max(1, ceil($total / $per_page));
+        $nav_tabs = $this->get_nav_tabs('logs');
 
         include GD_AUDIT_PLUGIN_DIR . 'includes/views/admin-page.php';
+    }
+
+    /**
+     * Renders the dashboard analytics page.
+     */
+    public function render_dashboard_page() {
+        $status_totals = $this->analytics->get_post_status_totals();
+        $daily_activity= $this->analytics->get_daily_post_activity();
+        $recent_posts  = $this->analytics->get_recent_published_posts();
+        $top_authors   = $this->analytics->get_top_authors();
+
+        $nav_tabs = $this->get_nav_tabs('dashboard');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/dashboard-page.php';
     }
 
     /**
      * Outputs the settings form.
      */
     public function render_settings_page() {
-        $settings       = $this->settings->get_settings();
-        $events         = $this->settings->get_available_events();
-        $option_key     = GDAuditSettings::OPTION_KEY;
+        $settings    = $this->settings->get_settings();
+        $events      = $this->settings->get_available_events();
+        $option_key  = GDAuditSettings::OPTION_KEY;
+        $nav_tabs = $this->get_nav_tabs('settings');
 
         include GD_AUDIT_PLUGIN_DIR . 'includes/views/settings-page.php';
+    }
+
+    /**
+     * Builds nav tab configuration for all plugin pages.
+     */
+    private function get_nav_tabs($current) {
+        $tabs = [
+            'dashboard' => [
+                'label' => __('Dashboard', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit'),
+            ],
+            'logs' => [
+                'label' => __('Logs', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-logs'),
+            ],
+            'settings' => [
+                'label' => __('Settings', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-settings'),
+            ],
+        ];
+
+        foreach ($tabs as $key => &$tab) {
+            $tab['active'] = ($key === $current);
+            $tab['key']    = $key;
+        }
+
+        return $tabs;
     }
 
     /**
