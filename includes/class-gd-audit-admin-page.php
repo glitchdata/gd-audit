@@ -278,6 +278,7 @@ class GDAuditAdminPage {
         $top_posts        = $report['top_posts'];
         $top_domains      = $report['top_domains'];
         $trend            = $report['trend'];
+        $trend_points     = $report['trend_points'];
         $active_types     = $report['post_types'];
         $active_type_labels = $report['post_type_labels'];
         $active_sample    = $report['sample_size'];

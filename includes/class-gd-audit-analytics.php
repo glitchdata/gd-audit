@@ -305,6 +305,7 @@ class GDAuditAnalytics {
         }
 
         $trend = [];
+        $sparkline_points = [];
         if ($sample['post_breakdown']) {
             $recent = array_slice($sample['post_breakdown'], 0, 8);
             $recent = array_reverse($recent); // oldest first for trend line
@@ -318,6 +319,7 @@ class GDAuditAnalytics {
                     'total'    => $entry['total'],
                     'post_type'=> $entry['post_type'],
                 ];
+                $sparkline_points[] = $percent_external;
             }
         }
 
@@ -336,6 +338,7 @@ class GDAuditAnalytics {
             'top_posts'     => $top_posts,
             'top_domains'   => $top_domains,
             'trend'         => $trend,
+            'trend_points'  => $sparkline_points,
             'post_types'    => $post_types,
             'post_type_labels' => $type_labels,
             'sample_size'   => (int) $args['sample_size'],

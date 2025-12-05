@@ -100,6 +100,7 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
                     <small class="gd-audit__meta"><?php echo esc_html(number_format_i18n($external)); ?> <?php esc_html_e('links', 'gd-audit'); ?></small>
                 </div>
             </div>
+            <canvas id="gd-audit-links-chart" height="120" data-points="<?php echo esc_attr(wp_json_encode($trend_points)); ?>"></canvas>
         </section>
     </div>
 
@@ -235,3 +236,62 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
         </section>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var canvas = document.getElementById('gd-audit-links-chart');
+    if (!canvas) {
+        return;
+    }
+
+    var ctx = canvas.getContext('2d');
+    var points = JSON.parse(canvas.getAttribute('data-points') || '[]');
+    if (!points.length) {
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#6c757d';
+        ctx.fillText('<?php echo esc_js(__('Not enough data for chart', 'gd-audit')); ?>', 10, 40);
+        return;
+    }
+
+    var width = canvas.width;
+    var height = canvas.height;
+    var max = Math.max.apply(null, points);
+    var min = Math.min.apply(null, points);
+    if (max === min) {
+        max += 1;
+        min -= 1;
+    }
+
+    var padding = 20;
+    var stepX = (width - (padding * 2)) / Math.max(points.length - 1, 1);
+    var range = max - min;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = '#0d6efd';
+    ctx.beginPath();
+
+    points.forEach(function (value, index) {
+        var x = padding + (index * stepX);
+        var normalized = (value - min) / range;
+        var y = height - padding - (normalized * (height - (padding * 2)));
+        if (index === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+
+    ctx.fillStyle = '#0d6efd';
+    points.forEach(function (value, index) {
+        var x = padding + (index * stepX);
+        var normalized = (value - min) / range;
+        var y = height - padding - (normalized * (height - (padding * 2)));
+        ctx.beginPath();
+        ctx.arc(x, y, 3, 0, Math.PI * 2);
+        ctx.fill();
+    });
+});
+</script>
