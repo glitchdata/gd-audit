@@ -256,8 +256,15 @@ class GDAuditAnalytics {
             'sample_size' => 75,
         ];
 
+        $args['post_types'] = isset($args['post_types']) ? (array) $args['post_types'] : [];
         $args   = wp_parse_args($args, $defaults);
-        $sample = $this->scan_linked_posts((array) $args['post_types'], (int) $args['sample_size']);
+
+        $post_types = $this->sanitize_post_types($args['post_types']);
+        if (!$post_types) {
+            $post_types = ['post'];
+        }
+
+        $sample = $this->scan_linked_posts($post_types, (int) $args['sample_size']);
 
         $overview = [
             'scanned'  => $sample['scanned'],
@@ -297,10 +304,41 @@ class GDAuditAnalytics {
             }
         }
 
+        $trend = [];
+        if ($sample['post_breakdown']) {
+            $recent = array_slice($sample['post_breakdown'], 0, 8);
+            $recent = array_reverse($recent); // oldest first for trend line
+            foreach ($recent as $entry) {
+                $percent_external = $entry['total'] > 0 ? round(($entry['external'] / $entry['total']) * 100) : 0;
+                $trend[] = [
+                    'id'       => $entry['post_id'],
+                    'title'    => $entry['title'],
+                    'date'     => $entry['date'],
+                    'external_pct' => $percent_external,
+                    'total'    => $entry['total'],
+                    'post_type'=> $entry['post_type'],
+                ];
+            }
+        }
+
+        $type_labels = [];
+        $type_objects = get_post_types([], 'objects');
+        foreach ($post_types as $type) {
+            if (isset($type_objects[$type])) {
+                $type_labels[] = $type_objects[$type]->labels->name;
+            } else {
+                $type_labels[] = ucfirst($type);
+            }
+        }
+
         return [
-            'overview'   => $overview,
-            'top_posts'  => $top_posts,
-            'top_domains'=> $top_domains,
+            'overview'      => $overview,
+            'top_posts'     => $top_posts,
+            'top_domains'   => $top_domains,
+            'trend'         => $trend,
+            'post_types'    => $post_types,
+            'post_type_labels' => $type_labels,
+            'sample_size'   => (int) $args['sample_size'],
         ];
     }
 
@@ -444,6 +482,7 @@ class GDAuditAnalytics {
             'external_links'   => 0,
             'post_link_counts' => [],
             'domains'          => [],
+            'post_breakdown'   => [],
         ];
 
         if (!$posts) {
@@ -456,14 +495,17 @@ class GDAuditAnalytics {
                 continue;
             }
 
-            $stats['post_link_counts'][$post->ID] = count($links);
+            $post_internal = 0;
+            $post_external = 0;
 
             foreach ($links as $href) {
                 $stats['total_links']++;
                 if ($this->is_internal_url($href)) {
                     $stats['internal_links']++;
+                    $post_internal++;
                 } else {
                     $stats['external_links']++;
+                    $post_external++;
                     $domain = $this->normalize_domain($href);
                     if ($domain) {
                         if (!isset($stats['domains'][$domain])) {
@@ -473,9 +515,38 @@ class GDAuditAnalytics {
                     }
                 }
             }
+
+            $total_for_post = $post_internal + $post_external;
+            if ($total_for_post <= 0) {
+                continue;
+            }
+
+            $stats['post_link_counts'][$post->ID] = $total_for_post;
+            $stats['post_breakdown'][] = [
+                'post_id'   => $post->ID,
+                'title'     => get_the_title($post),
+                'date'      => get_date_from_gmt($post->post_date_gmt, get_option('date_format')),
+                'post_type' => $post->post_type,
+                'total'     => $total_for_post,
+                'internal'  => $post_internal,
+                'external'  => $post_external,
+            ];
         }
 
         return $stats;
+    }
+
+    /**
+     * Validates requested post types against registered types.
+     */
+    private function sanitize_post_types(array $post_types) {
+        $post_types = array_filter(array_map('sanitize_key', $post_types));
+        if (!$post_types) {
+            return [];
+        }
+
+        $registered = get_post_types([], 'names');
+        return array_values(array_intersect($post_types, $registered));
     }
 
     /**

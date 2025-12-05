@@ -265,11 +265,24 @@ class GDAuditAdminPage {
      * Displays link analytics summaries.
      */
     public function render_links_page() {
-        $report      = $this->analytics->get_link_analytics();
-        $overview    = $report['overview'];
-        $top_posts   = $report['top_posts'];
-        $top_domains = $report['top_domains'];
-        $nav_tabs    = $this->get_nav_tabs('links');
+        $requested_types = isset($_GET['post_types']) ? (array) $_GET['post_types'] : [];
+        $requested_types = array_map('sanitize_key', $requested_types);
+        $sample_size     = isset($_GET['sample_size']) ? (int) $_GET['sample_size'] : 75;
+
+        $report      = $this->analytics->get_link_analytics([
+            'post_types'  => $requested_types,
+            'sample_size' => min(200, max(10, $sample_size)),
+        ]);
+
+        $overview         = $report['overview'];
+        $top_posts        = $report['top_posts'];
+        $top_domains      = $report['top_domains'];
+        $trend            = $report['trend'];
+        $active_types     = $report['post_types'];
+        $active_type_labels = $report['post_type_labels'];
+        $active_sample    = $report['sample_size'];
+        $nav_tabs         = $this->get_nav_tabs('links');
+        $filterable_types = $this->get_filterable_post_types();
 
         include GD_AUDIT_PLUGIN_DIR . 'includes/views/links-page.php';
     }
@@ -396,5 +409,15 @@ class GDAuditAdminPage {
         }
 
         return max(5, $per_page);
+    }
+
+    /**
+     * Returns post types the Links tab can filter by.
+     */
+    private function get_filterable_post_types() {
+        return get_post_types([
+            'public'  => true,
+            'show_ui' => true,
+        ], 'objects');
     }
 }
