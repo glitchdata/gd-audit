@@ -16,17 +16,21 @@ class GDAuditAdminPage {
     private $analytics;
     /** @var GDAuditPluginInspector */
     private $plugin_inspector;
+    /** @var GDAuditThemeInspector */
+    private $theme_inspector;
 
     public function __construct(
         GDAuditLogger $logger,
         GDAuditSettings $settings,
         GDAuditAnalytics $analytics,
-        GDAuditPluginInspector $plugin_inspector
+        GDAuditPluginInspector $plugin_inspector,
+        GDAuditThemeInspector $theme_inspector
     ) {
         $this->logger           = $logger;
         $this->settings         = $settings;
         $this->analytics        = $analytics;
         $this->plugin_inspector = $plugin_inspector;
+        $this->theme_inspector  = $theme_inspector;
 
         add_action('admin_menu', [$this, 'register_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
@@ -64,6 +68,15 @@ class GDAuditAdminPage {
             'manage_options',
             'gd-audit-plugins',
             [$this, 'render_plugins_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
+            __('Themes', 'gd-audit'),
+            __('Themes', 'gd-audit'),
+            'manage_options',
+            'gd-audit-themes',
+            [$this, 'render_themes_page']
         );
 
         add_submenu_page(
@@ -112,6 +125,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit',
             'gd-audit_page_gd-audit-logs',
             'gd-audit_page_gd-audit-plugins',
+            'gd-audit_page_gd-audit-themes',
             'gd-audit_page_gd-audit-settings',
         ];
 
@@ -191,6 +205,19 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays the installed themes overview.
+     */
+    public function render_themes_page() {
+        $themes         = $this->theme_inspector->get_themes();
+        $active_theme   = current(array_filter($themes, fn($theme) => !empty($theme['is_active'])));
+        $child_count    = count(array_filter($themes, fn($theme) => !empty($theme['is_child'])));
+        $update_count   = count(array_filter($themes, fn($theme) => !empty($theme['has_update'])));
+        $nav_tabs       = $this->get_nav_tabs('themes');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/themes-page.php';
+    }
+
+    /**
      * Outputs the settings form.
      */
     public function render_settings_page() {
@@ -218,6 +245,10 @@ class GDAuditAdminPage {
             'plugins' => [
                 'label' => __('Plugins', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-plugins'),
+            ],
+            'themes' => [
+                'label' => __('Themes', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-themes'),
             ],
             'settings' => [
                 'label' => __('Settings', 'gd-audit'),

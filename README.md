@@ -8,6 +8,7 @@ GD Audit is a lightweight WordPress plugin that records key user actions, surfac
 - Adds a dedicated top-level `GD Audit` admin menu with Dashboard, Logs, and Settings tabs.
 - Dashboard tab surfaces post analytics (status totals, daily publish trend, top authors, and recent publications).
 - Plugins tab lists every installed plugin with activation status and update availability signals.
+- Themes tab inventories installed themes, highlighting the active/child themes and pending updates.
 - Allows enabling/disabling individual event types, enforcing retention windows, and masking IP addresses.
 - Supports pagination preferences per user and shows contextual metadata (post type, user roles, etc.) in expandable sections.
 
@@ -19,9 +20,10 @@ GD Audit is a lightweight WordPress plugin that records key user actions, surfac
 ## Usage
 1. Navigate to `GD Audit → Dashboard` to review the latest post analytics.
 2. Use `GD Audit → Plugins` to audit installed extensions, see which are active, and spot pending updates.
-3. Switch to `GD Audit → Logs` to review the event stream and apply filters.
-4. Expand any log row to view the stored context JSON.
-5. Configure capture rules, retention, and privacy controls under `GD Audit → Settings`.
+3. Visit `GD Audit → Themes` to check which themes are installed, identify child themes, and review update availability.
+4. Switch to `GD Audit → Logs` to review the event stream and apply filters.
+5. Expand any log row to view the stored context JSON.
+6. Configure capture rules, retention, and privacy controls under `GD Audit → Settings`.
 
 ## Development
 - Minimum WordPress version: 6.0
