@@ -23,6 +23,7 @@ require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-settings.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-analytics.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-plugin-inspector.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-theme-inspector.php';
+require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-database-inspector.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-logger.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-admin-page.php';
 
@@ -38,13 +39,15 @@ function gd_audit_bootstrap() {
         $container->analytics     = new GDAuditAnalytics();
         $container->plugins       = new GDAuditPluginInspector();
         $container->themes        = new GDAuditThemeInspector();
+        $container->database      = new GDAuditDatabaseInspector();
         $container->logger        = new GDAuditLogger($container->settings);
         $container->admin_page    = new GDAuditAdminPage(
             $container->logger,
             $container->settings,
             $container->analytics,
             $container->plugins,
-            $container->themes
+            $container->themes,
+            $container->database
         );
     }
 

@@ -18,19 +18,23 @@ class GDAuditAdminPage {
     private $plugin_inspector;
     /** @var GDAuditThemeInspector */
     private $theme_inspector;
+    /** @var GDAuditDatabaseInspector */
+    private $database_inspector;
 
     public function __construct(
         GDAuditLogger $logger,
         GDAuditSettings $settings,
         GDAuditAnalytics $analytics,
         GDAuditPluginInspector $plugin_inspector,
-        GDAuditThemeInspector $theme_inspector
+        GDAuditThemeInspector $theme_inspector,
+        GDAuditDatabaseInspector $database_inspector
     ) {
         $this->logger           = $logger;
         $this->settings         = $settings;
         $this->analytics        = $analytics;
         $this->plugin_inspector = $plugin_inspector;
         $this->theme_inspector  = $theme_inspector;
+        $this->database_inspector = $database_inspector;
 
         add_action('admin_menu', [$this, 'register_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
@@ -90,6 +94,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Database', 'gd-audit'),
+            __('Database', 'gd-audit'),
+            'manage_options',
+            'gd-audit-database',
+            [$this, 'render_database_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Settings', 'gd-audit'),
             __('Settings', 'gd-audit'),
             'manage_options',
@@ -136,6 +149,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-plugins',
             'gd-audit_page_gd-audit-themes',
             'gd-audit_page_gd-audit-users',
+            'gd-audit_page_gd-audit-database',
             'gd-audit_page_gd-audit-settings',
         ];
 
@@ -252,6 +266,17 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays database tables and stats.
+     */
+    public function render_database_page() {
+        $tables   = $this->database_inspector->get_tables();
+        $summary  = $this->database_inspector->get_summary($tables);
+        $nav_tabs = $this->get_nav_tabs('database');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/database-page.php';
+    }
+
+    /**
      * Outputs the settings form.
      */
     public function render_settings_page() {
@@ -287,6 +312,10 @@ class GDAuditAdminPage {
             'users' => [
                 'label' => __('Users', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-users'),
+            ],
+            'database' => [
+                'label' => __('Database', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-database'),
             ],
             'settings' => [
                 'label' => __('Settings', 'gd-audit'),
