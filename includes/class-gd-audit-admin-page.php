@@ -85,6 +85,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Images', 'gd-audit'),
+            __('Images', 'gd-audit'),
+            'manage_options',
+            'gd-audit-images',
+            [$this, 'render_images_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Users', 'gd-audit'),
             __('Users', 'gd-audit'),
             'manage_options',
@@ -148,6 +157,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-logs',
             'gd-audit_page_gd-audit-plugins',
             'gd-audit_page_gd-audit-themes',
+            'gd-audit_page_gd-audit-images',
             'gd-audit_page_gd-audit-users',
             'gd-audit_page_gd-audit-database',
             'gd-audit_page_gd-audit-settings',
@@ -266,6 +276,17 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays media library analytics.
+     */
+    public function render_images_page() {
+        $overview      = $this->analytics->get_image_overview();
+        $recent_images = $this->analytics->get_recent_images();
+        $nav_tabs      = $this->get_nav_tabs('images');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/images-page.php';
+    }
+
+    /**
      * Displays database tables and stats.
      */
     public function render_database_page() {
@@ -308,6 +329,10 @@ class GDAuditAdminPage {
             'themes' => [
                 'label' => __('Themes', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-themes'),
+            ],
+            'images' => [
+                'label' => __('Images', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-images'),
             ],
             'users' => [
                 'label' => __('Users', 'gd-audit'),

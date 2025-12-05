@@ -246,4 +246,140 @@ class GDAuditAnalytics {
 
         return $prepared;
     }
+
+    /**
+     * Provides aggregate stats for image attachments.
+     */
+    public function get_image_overview() {
+        global $wpdb;
+
+        $status_rows = $wpdb->get_results(
+            "SELECT post_status, COUNT(*) as total
+             FROM {$wpdb->posts}
+             WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'
+             GROUP BY post_status",
+            OBJECT_K
+        );
+
+        $mime_rows = $wpdb->get_results(
+            "SELECT post_mime_type, COUNT(*) as total
+             FROM {$wpdb->posts}
+             WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'
+             GROUP BY post_mime_type
+             ORDER BY total DESC",
+            ARRAY_A
+        );
+
+        $summary = [
+            'total'        => 0,
+            'status'       => [],
+            'mime_counts'  => [],
+            'total_size'   => 0,
+            'avg_size'     => 0,
+        ];
+
+        if ($status_rows) {
+            foreach ($status_rows as $status => $row) {
+                $summary['status'][$status] = (int) $row->total;
+                $summary['total']          += (int) $row->total;
+            }
+        }
+
+        if ($mime_rows) {
+            foreach ($mime_rows as $row) {
+                $summary['mime_counts'][] = [
+                    'mime'  => $row['post_mime_type'],
+                    'label' => strtoupper(str_replace('image/', '', $row['post_mime_type'])),
+                    'count' => (int) $row['total'],
+                ];
+            }
+        }
+
+        $summary['total_size'] = $this->calculate_image_library_size();
+        if ($summary['total'] > 0) {
+            $summary['avg_size'] = (int) ($summary['total_size'] / $summary['total']);
+        }
+
+        return $summary;
+    }
+
+    /**
+     * Returns recently uploaded images with sizes.
+     */
+    public function get_recent_images($limit = 6) {
+        $limit = max(1, (int) $limit);
+
+        $attachments = get_posts([
+            'post_type'      => 'attachment',
+            'post_mime_type' => 'image',
+            'posts_per_page' => $limit,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_status'    => 'inherit',
+            'no_found_rows'  => true,
+        ]);
+
+        $items = [];
+        foreach ($attachments as $attachment) {
+            $size_bytes = $this->get_attachment_size($attachment->ID);
+            $items[] = [
+                'id'        => $attachment->ID,
+                'title'     => get_the_title($attachment),
+                'author'    => get_the_author_meta('display_name', $attachment->post_author),
+                'date'      => get_date_from_gmt($attachment->post_date_gmt, get_option('date_format') . ' ' . get_option('time_format')),
+                'edit_url'  => get_edit_post_link($attachment->ID, ''),
+                'mime'      => $attachment->post_mime_type,
+                'size'      => $size_bytes,
+                'thumbnail' => wp_get_attachment_image_url($attachment->ID, 'thumbnail'),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Computes the aggregate size of all image attachments.
+     */
+    private function calculate_image_library_size() {
+        global $wpdb;
+
+        $rows = $wpdb->get_col(
+            "SELECT pm.meta_value
+             FROM {$wpdb->postmeta} pm
+             INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+             WHERE pm.meta_key = '_wp_attachment_metadata'
+             AND p.post_type = 'attachment'
+             AND p.post_mime_type LIKE 'image/%'"
+        );
+
+        $total = 0;
+        if ($rows) {
+            foreach ($rows as $meta_value) {
+                $meta = maybe_unserialize($meta_value);
+                if (is_array($meta) && isset($meta['filesize'])) {
+                    $total += (int) $meta['filesize'];
+                }
+            }
+        }
+
+        return $total;
+    }
+
+    /**
+     * Attempts to determine an attachment's file size.
+     */
+    private function get_attachment_size($attachment_id) {
+        $meta = wp_get_attachment_metadata($attachment_id);
+        if (is_array($meta) && isset($meta['filesize'])) {
+            return (int) $meta['filesize'];
+        }
+
+        $file = get_attached_file($attachment_id);
+        if ($file && file_exists($file)) {
+            $size = filesize($file);
+            return $size ? (int) $size : 0;
+        }
+
+        return 0;
+    }
 }
