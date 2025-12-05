@@ -8,8 +8,6 @@ if (!defined('ABSPATH')) {
 }
 
 class GDAuditAdminPage {
-    /** @var GDAuditLogger */
-    private $logger;
     /** @var GDAuditSettings */
     private $settings;
     /** @var GDAuditAnalytics */
@@ -22,14 +20,12 @@ class GDAuditAdminPage {
     private $database_inspector;
 
     public function __construct(
-        GDAuditLogger $logger,
         GDAuditSettings $settings,
         GDAuditAnalytics $analytics,
         GDAuditPluginInspector $plugin_inspector,
         GDAuditThemeInspector $theme_inspector,
         GDAuditDatabaseInspector $database_inspector
     ) {
-        $this->logger           = $logger;
         $this->settings         = $settings;
         $this->analytics        = $analytics;
         $this->plugin_inspector = $plugin_inspector;
@@ -38,7 +34,6 @@ class GDAuditAdminPage {
 
         add_action('admin_menu', [$this, 'register_menu']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
-        add_filter('set_screen_option_gd_audit_per_page', [$this, 'set_screen_option'], 10, 3);
         add_action('admin_init', [$this, 'register_settings']);
     }
 
@@ -54,15 +49,6 @@ class GDAuditAdminPage {
             [$this, 'render_dashboard_page'],
             'dashicons-visibility',
             65
-        );
-
-        add_submenu_page(
-            'gd-audit',
-            __('Logs', 'gd-audit'),
-            __('Logs', 'gd-audit'),
-            'manage_options',
-            'gd-audit-logs',
-            [$this, 'render_logs_page']
         );
 
         add_submenu_page(
@@ -136,33 +122,6 @@ class GDAuditAdminPage {
             'gd-audit-settings',
             [$this, 'render_settings_page']
         );
-
-        add_action('load-gd-audit_page_gd-audit-logs', [$this, 'add_screen_options']);
-    }
-
-    /**
-     * Adds pagination options to the screen.
-     */
-    public function add_screen_options() {
-        add_screen_option(
-            'per_page',
-            [
-                'label'   => __('Logs per page', 'gd-audit'),
-                'default' => 25,
-                'option'  => 'gd_audit_per_page',
-            ]
-        );
-    }
-
-    /**
-     * Stores custom per-page value.
-     */
-    public function set_screen_option($status, $option, $value) {
-        if ('gd_audit_per_page' === $option) {
-            return (int) $value;
-        }
-
-        return $status;
     }
 
     /**
@@ -172,7 +131,6 @@ class GDAuditAdminPage {
         $allowed_hooks = [
             'toplevel_page_gd-audit',
             'gd-audit_page_gd-audit',
-            'gd-audit_page_gd-audit-logs',
             'gd-audit_page_gd-audit-plugins',
             'gd-audit_page_gd-audit-themes',
             'gd-audit_page_gd-audit-links',
@@ -207,45 +165,18 @@ class GDAuditAdminPage {
     }
 
     /**
-     * Renders the audit logs page with filters and table.
-     */
-    public function render_logs_page() {
-        $per_page = $this->get_per_page();
-        $paged    = max(1, (int) ($_GET['paged'] ?? 1));
-
-        $filters = [
-            'event_type' => sanitize_text_field($_GET['event_type'] ?? ''),
-            'search'     => sanitize_text_field($_GET['s'] ?? ''),
-            'date_from'  => sanitize_text_field($_GET['date_from'] ?? ''),
-            'date_to'    => sanitize_text_field($_GET['date_to'] ?? ''),
-            'limit'      => $per_page,
-            'offset'     => ($paged - 1) * $per_page,
-        ];
-
-        $logs        = $this->logger->get_logs($filters);
-        $total       = $this->logger->count_logs($filters);
-        $eventTypes  = $this->logger->get_event_types();
-        $total_pages = max(1, ceil($total / $per_page));
-        $nav_tabs = $this->get_nav_tabs('logs');
-
-        include GD_AUDIT_PLUGIN_DIR . 'includes/views/admin-page.php';
-    }
-
-    /**
      * Renders the dashboard analytics page.
      */
     public function render_dashboard_page() {
         $nav_tabs = $this->get_nav_tabs('dashboard');
 
-        $settings_data     = $this->settings->get_settings();
-        $enabled_events    = isset($settings_data['enabled_events']) ? (array) $settings_data['enabled_events'] : [];
+        $settings_data       = $this->settings->get_settings();
+        $enabled_events      = isset($settings_data['enabled_events']) ? (array) $settings_data['enabled_events'] : [];
         $enabled_event_count = count($enabled_events);
-        $retention_days    = isset($settings_data['retention_days']) ? (int) $settings_data['retention_days'] : 0;
-        $retention_label   = $retention_days > 0
+        $retention_days      = isset($settings_data['retention_days']) ? (int) $settings_data['retention_days'] : 0;
+        $retention_label     = $retention_days > 0
             ? sprintf(_n('%d day', '%d days', $retention_days, 'gd-audit'), $retention_days)
             : __('No limit', 'gd-audit');
-
-        $logs_total        = $this->logger->count_logs();
 
         $plugins           = $this->plugin_inspector->get_plugins();
         $plugin_total      = count($plugins);
@@ -283,18 +214,6 @@ class GDAuditAdminPage {
         $config_summary    = $config_overview['summary'];
 
         $dashboard_tiles   = [
-            [
-                'key'           => 'logs',
-                'label'         => __('Logs', 'gd-audit'),
-                'description'   => __('Audit every captured system event.', 'gd-audit'),
-                'primary_value' => number_format_i18n($logs_total),
-                'primary_label' => __('Events logged', 'gd-audit'),
-                'items'         => [
-                    sprintf(__('Retention: %s', 'gd-audit'), $retention_label),
-                    sprintf(__('IP masking: %s', 'gd-audit'), !empty($settings_data['mask_ip']) ? __('On', 'gd-audit') : __('Off', 'gd-audit')),
-                ],
-                'url'           => admin_url('admin.php?page=gd-audit-logs'),
-            ],
             [
                 'key'           => 'plugins',
                 'label'         => __('Plugins', 'gd-audit'),
@@ -527,10 +446,6 @@ class GDAuditAdminPage {
                 'label' => __('Dashboard', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit'),
             ],
-            'logs' => [
-                'label' => __('Logs', 'gd-audit'),
-                'url'   => admin_url('admin.php?page=gd-audit-logs'),
-            ],
             'plugins' => [
                 'label' => __('Plugins', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-plugins'),
@@ -571,21 +486,6 @@ class GDAuditAdminPage {
         }
 
         return $tabs;
-    }
-
-    /**
-     * Returns the per page preference using WP screen API.
-     */
-    private function get_per_page() {
-        $screen   = get_current_screen();
-        $per_page = $screen ? (int) $screen->get_option('per_page', 'option') : 25;
-        $value    = (int) get_user_meta(get_current_user_id(), 'gd_audit_per_page', true);
-
-        if ($value) {
-            $per_page = $value;
-        }
-
-        return max(5, $per_page);
     }
 
     /**

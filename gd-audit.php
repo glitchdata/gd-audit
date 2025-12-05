@@ -24,7 +24,6 @@ require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-analytics.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-plugin-inspector.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-theme-inspector.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-database-inspector.php';
-require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-logger.php';
 require_once GD_AUDIT_PLUGIN_DIR . 'includes/class-gd-audit-admin-page.php';
 
 /**
@@ -40,9 +39,7 @@ function gd_audit_bootstrap() {
         $container->plugins       = new GDAuditPluginInspector();
         $container->themes        = new GDAuditThemeInspector();
         $container->database      = new GDAuditDatabaseInspector();
-        $container->logger        = new GDAuditLogger($container->settings);
         $container->admin_page    = new GDAuditAdminPage(
-            $container->logger,
             $container->settings,
             $container->analytics,
             $container->plugins,
@@ -55,7 +52,17 @@ function gd_audit_bootstrap() {
 }
 add_action('plugins_loaded', 'gd_audit_bootstrap');
 
-register_activation_hook(__FILE__, ['GDAuditLogger', 'create_table']);
+
+/**
+ * Removes the legacy audit log table since logging is deprecated.
+ */
+function gd_audit_remove_legacy_logs_table() {
+    global $wpdb;
+
+    $table_name = $wpdb->prefix . 'gd_audit_logs';
+    $wpdb->query("DROP TABLE IF EXISTS {$table_name}");
+}
+add_action('plugins_loaded', 'gd_audit_remove_legacy_logs_table', 5);
 
 /**
  * Adds a shortcut to the settings screen from the plugins list.
