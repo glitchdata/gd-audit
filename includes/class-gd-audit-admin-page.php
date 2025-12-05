@@ -80,8 +80,8 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
-            __('Database', 'gd-audit'),
-            __('Database', 'gd-audit'),
+            __('DB', 'gd-audit'),
+            __('DB', 'gd-audit'),
             'manage_options',
             'gd-audit-database',
             [$this, 'render_database_page']
@@ -284,7 +284,7 @@ class GDAuditAdminPage {
             ],
             [
                 'key'           => 'database',
-                'label'         => __('Database', 'gd-audit'),
+                'label'         => __('DB', 'gd-audit'),
                 'description'   => __('Inspect table health and footprint.', 'gd-audit'),
                 'primary_value' => number_format_i18n($database_summary['total_tables']),
                 'primary_label' => __('Tables detected', 'gd-audit'),
@@ -464,7 +464,7 @@ class GDAuditAdminPage {
                 'url'   => admin_url('admin.php?page=gd-audit-config'),
             ],
             'database' => [
-                'label' => __('Database', 'gd-audit'),
+                'label' => __('DB', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-database'),
             ],
             'users' => [

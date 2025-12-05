@@ -35,6 +35,8 @@ $total_size = $summary['data_size'] + $summary['index_size'];
         </article>
     </section>
 
+    <hr class="gd-audit__divider" />
+
     <table class="wp-list-table widefat fixed striped gd-audit__table">
         <thead>
             <tr>
