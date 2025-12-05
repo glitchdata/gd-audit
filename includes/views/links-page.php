@@ -86,9 +86,10 @@ $sample_label  = $active_type_labels ? implode(', ', $active_type_labels) : __('
                 id="gd-audit-links-bars"
                 height="180"
                 data-bars='<?php echo esc_attr(wp_json_encode([
-                    ['label' => __('Internal', 'gd-audit'), 'value' => (int) $internal],
-                    ['label' => __('External', 'gd-audit'), 'value' => (int) $external],
-                    ['label' => __('Total', 'gd-audit'), 'value' => (int) $total_links],
+                    ['label' => __('Items scanned', 'gd-audit'), 'value' => (int) $active_sample],
+                    ['label' => __('Posts scanned', 'gd-audit'), 'value' => (int) $scanned_posts],
+                    ['label' => __('Total links', 'gd-audit'), 'value' => (int) $total_links],
+                    ['label' => __('Avg links / post', 'gd-audit'), 'value' => (float) $avg_links],
                 ])); ?>'
             ></canvas>
         </section>
@@ -337,14 +338,12 @@ function renderLinksBarChart() {
         var y = height - padding - barHeight;
 
         ctx.fillStyle = '#0d6efd';
-        if (bar.label.toLowerCase().indexOf('external') !== -1) {
-            ctx.fillStyle = '#dc3545';
-        }
 
         ctx.fillRect(x, y, barWidth, barHeight);
 
         ctx.fillStyle = '#000';
-        ctx.fillText(bar.value, x + (barWidth / 2), y - 6);
+        var displayValue = Number.isInteger(bar.value) ? bar.value : bar.value.toFixed(1);
+        ctx.fillText(displayValue, x + (barWidth / 2), y - 6);
         ctx.fillText(bar.label, x + (barWidth / 2), height - padding + 14);
     });
 }
