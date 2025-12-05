@@ -81,6 +81,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Users', 'gd-audit'),
+            __('Users', 'gd-audit'),
+            'manage_options',
+            'gd-audit-users',
+            [$this, 'render_users_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Settings', 'gd-audit'),
             __('Settings', 'gd-audit'),
             'manage_options',
@@ -126,6 +135,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-logs',
             'gd-audit_page_gd-audit-plugins',
             'gd-audit_page_gd-audit-themes',
+            'gd-audit_page_gd-audit-users',
             'gd-audit_page_gd-audit-settings',
         ];
 
@@ -218,6 +228,30 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays user analytics.
+     */
+    public function render_users_page() {
+        $roles_data     = $this->analytics->get_user_role_distribution();
+        $registration_trend = $this->analytics->get_user_registration_trend();
+        $recent_users   = $this->analytics->get_recent_users();
+        $total_users    = $roles_data['total'];
+        $roles          = $roles_data['roles'];
+
+        $admin_count = 0;
+        foreach ($roles as $role) {
+            if ('administrator' === $role['role']) {
+                $admin_count = $role['count'];
+                break;
+            }
+        }
+
+        $recent_registrations = array_sum(wp_list_pluck($registration_trend, 'total'));
+        $nav_tabs = $this->get_nav_tabs('users');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/users-page.php';
+    }
+
+    /**
      * Outputs the settings form.
      */
     public function render_settings_page() {
@@ -249,6 +283,10 @@ class GDAuditAdminPage {
             'themes' => [
                 'label' => __('Themes', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-themes'),
+            ],
+            'users' => [
+                'label' => __('Users', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-users'),
             ],
             'settings' => [
                 'label' => __('Settings', 'gd-audit'),

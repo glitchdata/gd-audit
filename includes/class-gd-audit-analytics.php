@@ -145,4 +145,105 @@ class GDAuditAnalytics {
 
         return $items;
     }
+
+    /**
+     * Returns totals and role distribution for site users.
+     */
+    public function get_user_role_distribution() {
+        $counts     = count_users();
+        $roles      = $counts['avail_roles'] ?? [];
+        $formatted  = [];
+
+        $wp_roles = wp_roles();
+
+        foreach ($roles as $role => $count) {
+            $label = isset($wp_roles->roles[$role]['name']) ? $wp_roles->roles[$role]['name'] : ucwords(str_replace('_', ' ', $role));
+            $formatted[] = [
+                'role'  => $role,
+                'label' => translate_user_role($label),
+                'count' => (int) $count,
+            ];
+        }
+
+        usort($formatted, function ($a, $b) {
+            return $b['count'] <=> $a['count'];
+        });
+
+        return [
+            'total' => isset($counts['total_users']) ? (int) $counts['total_users'] : 0,
+            'roles' => $formatted,
+        ];
+    }
+
+    /**
+     * Returns recently registered users with meta details.
+     */
+    public function get_recent_users($limit = 5) {
+        $limit = max(1, (int) $limit);
+
+        $users = get_users([
+            'number'  => $limit,
+            'orderby' => 'registered',
+            'order'   => 'DESC',
+            'fields'  => ['ID', 'user_login', 'display_name', 'user_registered', 'user_email'],
+        ]);
+
+        $items = [];
+        foreach ($users as $user) {
+            $items[] = [
+                'id'        => $user->ID,
+                'name'      => $user->display_name ?: $user->user_login,
+                'login'     => $user->user_login,
+                'email'     => $user->user_email,
+                'registered'=> get_date_from_gmt($user->user_registered, get_option('date_format') . ' ' . get_option('time_format')),
+                'edit_url'  => get_edit_user_link($user->ID),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Returns counts of new registrations over a time window.
+     */
+    public function get_user_registration_trend($days = 7) {
+        global $wpdb;
+
+        $days = max(1, (int) $days);
+        $now  = time();
+        $cutoff = gmdate('Y-m-d H:i:s', $now - ($days * DAY_IN_SECONDS));
+
+        $rows = $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT DATE(user_registered) as day, COUNT(*) as total
+                 FROM {$wpdb->users}
+                 WHERE user_registered >= %s
+                 GROUP BY day
+                 ORDER BY day ASC",
+                $cutoff
+            )
+        );
+
+        $series = [];
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $day = gmdate('Y-m-d', $now - ($i * DAY_IN_SECONDS));
+            $series[$day] = 0;
+        }
+
+        foreach ($rows as $row) {
+            if (isset($series[$row->day])) {
+                $series[$row->day] = (int) $row->total;
+            }
+        }
+
+        $prepared = [];
+        foreach ($series as $day => $total) {
+            $prepared[] = [
+                'day'   => $day,
+                'total' => $total,
+            ];
+        }
+
+        return $prepared;
+    }
 }

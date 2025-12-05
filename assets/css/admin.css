@@ -154,6 +154,25 @@
     margin-top: 2px;
 }
 
+.gd-audit__recent-users {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.gd-audit__recent-users li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+    gap: 12px;
+}
+
+.gd-audit__recent-users li:last-child {
+    border-bottom: 0;
+}
+
 .gd-audit__table .description {
     margin: 4px 0;
 }
