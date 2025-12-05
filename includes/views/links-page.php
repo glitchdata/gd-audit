@@ -20,28 +20,38 @@ $avg_links     = $scanned_posts > 0 ? round($total_links / $scanned_posts, 1) : 
 
     <h1 class="gd-audit__section-title"><?php esc_html_e('Links', 'gd-audit'); ?></h1>
 
-    <section class="gd-audit__cards">
-        <article class="gd-audit__card">
-            <p class="gd-audit__card-label"><?php esc_html_e('Posts scanned', 'gd-audit'); ?></p>
-            <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($scanned_posts)); ?></p>
-        </article>
-        <article class="gd-audit__card">
-            <p class="gd-audit__card-label"><?php esc_html_e('Total links', 'gd-audit'); ?></p>
-            <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($total_links)); ?></p>
-        </article>
-        <article class="gd-audit__card">
-            <p class="gd-audit__card-label"><?php esc_html_e('Avg links / post', 'gd-audit'); ?></p>
-            <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($avg_links, 1)); ?></p>
-        </article>
-        <article class="gd-audit__card">
-            <p class="gd-audit__card-label"><?php esc_html_e('Internal links', 'gd-audit'); ?></p>
-            <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($internal)); ?></p>
-        </article>
-        <article class="gd-audit__card">
-            <p class="gd-audit__card-label"><?php esc_html_e('External links', 'gd-audit'); ?></p>
-            <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($external)); ?></p>
-            <span class="gd-audit__meta"><?php printf(esc_html__('%s%% of all links', 'gd-audit'), esc_html($external_pct)); ?></span>
-        </article>
+    <section class="gd-audit-links__stat-box">
+        <header class="gd-audit-links__stat-head">
+            <div>
+                <span class="gd-audit-links__eyebrow"><?php esc_html_e('Snapshot', 'gd-audit'); ?></span>
+                <h2><?php esc_html_e('Link statistics', 'gd-audit'); ?></h2>
+            </div>
+            <p><?php printf(esc_html__('Based on %s recent posts/pages.', 'gd-audit'), esc_html(number_format_i18n($scanned_posts))); ?></p>
+        </header>
+
+        <section class="gd-audit__cards">
+            <article class="gd-audit__card">
+                <p class="gd-audit__card-label"><?php esc_html_e('Posts scanned', 'gd-audit'); ?></p>
+                <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($scanned_posts)); ?></p>
+            </article>
+            <article class="gd-audit__card">
+                <p class="gd-audit__card-label"><?php esc_html_e('Total links', 'gd-audit'); ?></p>
+                <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($total_links)); ?></p>
+            </article>
+            <article class="gd-audit__card">
+                <p class="gd-audit__card-label"><?php esc_html_e('Avg links / post', 'gd-audit'); ?></p>
+                <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($avg_links, 1)); ?></p>
+            </article>
+            <article class="gd-audit__card">
+                <p class="gd-audit__card-label"><?php esc_html_e('Internal links', 'gd-audit'); ?></p>
+                <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($internal)); ?></p>
+            </article>
+            <article class="gd-audit__card">
+                <p class="gd-audit__card-label"><?php esc_html_e('External links', 'gd-audit'); ?></p>
+                <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($external)); ?></p>
+                <span class="gd-audit__meta"><?php printf(esc_html__('%s%% of all links', 'gd-audit'), esc_html($external_pct)); ?></span>
+            </article>
+        </section>
     </section>
 
     <section class="gd-audit-links__distribution">

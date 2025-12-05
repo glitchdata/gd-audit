@@ -275,6 +275,41 @@
     margin-top: 24px;
 }
 
+.gd-audit-links__stat-box {
+    margin-top: 28px;
+    padding: 28px;
+    border-radius: 14px;
+    border: 1px solid #dfe4ea;
+    background: linear-gradient(135deg, #fdfefe, #f4f7fb);
+    box-shadow: 0 15px 35px rgba(15, 23, 42, 0.08);
+}
+
+.gd-audit-links__stat-head {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: baseline;
+    margin-bottom: 18px;
+}
+
+.gd-audit-links__stat-head h2 {
+    margin: 4px 0 0;
+    font-size: 1.4rem;
+}
+
+.gd-audit-links__stat-head p {
+    margin: 0;
+    color: #475569;
+}
+
+.gd-audit-links__eyebrow {
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
 .gd-audit-links__split-card {
     border: 1px solid #dfe4ea;
     border-radius: 8px;
