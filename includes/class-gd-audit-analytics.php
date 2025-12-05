@@ -436,6 +436,152 @@ class GDAuditAnalytics {
     }
 
     /**
+     * Builds a snapshot of key WordPress configuration values.
+     */
+    public function get_site_configuration_overview() {
+        global $wpdb;
+
+        $theme          = wp_get_theme();
+        $parent_theme   = $theme && $theme->parent() ? $theme->parent() : null;
+        $permalink      = get_option('permalink_structure');
+        $memory_limit   = defined('WP_MEMORY_LIMIT') ? WP_MEMORY_LIMIT : ini_get('memory_limit');
+        $db_version     = method_exists($wpdb, 'db_version') ? $wpdb->db_version() : $wpdb->db_server_info();
+        $server_software = isset($_SERVER['SERVER_SOFTWARE']) ? wp_unslash($_SERVER['SERVER_SOFTWARE']) : __('Unknown server', 'gd-audit');
+        $auto_core_updates = function_exists('wp_is_auto_update_enabled_for_type') ? wp_is_auto_update_enabled_for_type('core') : true;
+
+        $theme_name    = $theme ? $theme->get('Name') : __('Unknown', 'gd-audit');
+        $theme_version = $theme ? $theme->get('Version') : '';
+        $theme_meta    = $theme_version ? sprintf(__('v%s', 'gd-audit'), $theme_version) : '';
+
+        $summary_cards = [
+            [
+                'label' => __('WordPress', 'gd-audit'),
+                'value' => get_bloginfo('version'),
+                'meta'  => __('Core version', 'gd-audit'),
+            ],
+            [
+                'label' => __('PHP', 'gd-audit'),
+                'value' => PHP_VERSION,
+                'meta'  => __('Runtime version', 'gd-audit'),
+            ],
+            [
+                'label' => __('Active theme', 'gd-audit'),
+                'value' => $theme_name,
+                'meta'  => $theme_meta,
+            ],
+        ];
+
+        $sections = [
+            [
+                'title' => __('Site basics', 'gd-audit'),
+                'items' => [
+                    ['label' => __('Site title', 'gd-audit'), 'value' => get_bloginfo('name')],
+                    ['label' => __('Tagline', 'gd-audit'), 'value' => get_bloginfo('description')],
+                    ['label' => __('Site URL', 'gd-audit'), 'value' => get_option('siteurl')],
+                    ['label' => __('Home URL', 'gd-audit'), 'value' => home_url('/')],
+                    ['label' => __('Admin email', 'gd-audit'), 'value' => get_option('admin_email')],
+                    ['label' => __('Timezone', 'gd-audit'), 'value' => wp_timezone_string()],
+                    ['label' => __('Locale', 'gd-audit'), 'value' => get_locale()],
+                    ['label' => __('Permalink structure', 'gd-audit'), 'value' => $permalink ? $permalink : __('Plain', 'gd-audit')],
+                ],
+            ],
+            [
+                'title' => __('Environment', 'gd-audit'),
+                'items' => [
+                    ['label' => __('WordPress version', 'gd-audit'), 'value' => get_bloginfo('version')],
+                    ['label' => __('PHP version', 'gd-audit'), 'value' => PHP_VERSION],
+                    ['label' => __('Database version', 'gd-audit'), 'value' => $db_version],
+                    ['label' => __('Server software', 'gd-audit'), 'value' => $server_software],
+                    ['label' => __('Memory limit', 'gd-audit'), 'value' => $memory_limit],
+                ],
+            ],
+            [
+                'title' => __('Themes', 'gd-audit'),
+                'items' => [
+                    ['label' => __('Active theme', 'gd-audit'), 'value' => $theme ? $theme->get('Name') : __('Unknown', 'gd-audit')],
+                    ['label' => __('Theme version', 'gd-audit'), 'value' => $theme ? $theme->get('Version') : __('Unknown', 'gd-audit')],
+                    ['label' => __('Template', 'gd-audit'), 'value' => $theme ? $theme->get_template() : __('Unknown', 'gd-audit')],
+                    ['label' => __('Stylesheet', 'gd-audit'), 'value' => $theme ? $theme->get_stylesheet() : __('Unknown', 'gd-audit')],
+                    [
+                        'label'        => __('Child theme', 'gd-audit'),
+                        'value'        => (bool) $parent_theme,
+                        'is_boolean'   => true,
+                        'true_label'   => __('Yes', 'gd-audit'),
+                        'false_label'  => __('No', 'gd-audit'),
+                    ],
+                    ['label' => __('Parent theme', 'gd-audit'), 'value' => $parent_theme ? $parent_theme->get('Name') : __('None', 'gd-audit')],
+                ],
+            ],
+            [
+                'title' => __('Feature flags', 'gd-audit'),
+                'items' => [
+                    [
+                        'label'       => __('Multisite', 'gd-audit'),
+                        'value'       => is_multisite(),
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('Debug mode', 'gd-audit'),
+                        'value'       => defined('WP_DEBUG') && WP_DEBUG,
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('Script debug', 'gd-audit'),
+                        'value'       => defined('SCRIPT_DEBUG') && SCRIPT_DEBUG,
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('Object cache', 'gd-audit'),
+                        'value'       => wp_using_ext_object_cache(),
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('Cron enabled', 'gd-audit'),
+                        'value'       => !defined('DISABLE_WP_CRON') || !DISABLE_WP_CRON,
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('Search engine visibility', 'gd-audit'),
+                        'value'       => !(get_option('blog_public') === '0'),
+                        'is_boolean'  => true,
+                        'true_label'  => __('Visible', 'gd-audit'),
+                        'false_label' => __('Discouraged', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('Auto core updates', 'gd-audit'),
+                        'value'       => (bool) $auto_core_updates,
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('Automatic updates disabled', 'gd-audit'),
+                        'value'       => defined('AUTOMATIC_UPDATER_DISABLED') && AUTOMATIC_UPDATER_DISABLED,
+                        'is_boolean'  => true,
+                        'true_label'  => __('Yes', 'gd-audit'),
+                        'false_label' => __('No', 'gd-audit'),
+                    ],
+                ],
+            ],
+        ];
+
+        return [
+            'summary'  => $summary_cards,
+            'sections' => $sections,
+        ];
+    }
+
+    /**
      * Computes the aggregate size of all image attachments.
      */
     private function calculate_image_library_size() {

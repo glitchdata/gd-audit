@@ -121,6 +121,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Config', 'gd-audit'),
+            __('Config', 'gd-audit'),
+            'manage_options',
+            'gd-audit-config',
+            [$this, 'render_config_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Settings', 'gd-audit'),
             __('Settings', 'gd-audit'),
             'manage_options',
@@ -170,6 +179,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-images',
             'gd-audit_page_gd-audit-users',
             'gd-audit_page_gd-audit-database',
+            'gd-audit_page_gd-audit-config',
             'gd-audit_page_gd-audit-settings',
         ];
 
@@ -335,6 +345,18 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays key WordPress configuration details.
+     */
+    public function render_config_page() {
+        $config_overview = $this->analytics->get_site_configuration_overview();
+        $config_summary  = $config_overview['summary'];
+        $config_sections = $config_overview['sections'];
+        $nav_tabs        = $this->get_nav_tabs('config');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/config-page.php';
+    }
+
+    /**
      * Outputs the settings form.
      */
     public function render_settings_page() {
@@ -382,6 +404,10 @@ class GDAuditAdminPage {
             'database' => [
                 'label' => __('Database', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-database'),
+            ],
+            'config' => [
+                'label' => __('Config', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-config'),
             ],
             'settings' => [
                 'label' => __('Settings', 'gd-audit'),
