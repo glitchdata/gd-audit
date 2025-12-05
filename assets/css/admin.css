@@ -1,0 +1,28 @@
+.gd-audit__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.gd-audit__filters label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 600;
+}
+
+.gd-audit__filters input,
+.gd-audit__filters select {
+    min-width: 200px;
+}
+
+.gd-audit details {
+    margin-top: 6px;
+}
+
+.gd-audit pre {
+    background: #f7f7f7;
+    padding: 8px;
+    font-size: 12px;
+    overflow-x: auto;
+}
