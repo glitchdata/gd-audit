@@ -428,3 +428,17 @@
     font-weight: 600;
     font-size: 0.85rem;
 }
+
+.gd-audit-config__lead {
+    margin: 0 0 16px;
+    color: #555;
+}
+
+.gd-audit-config__table th {
+    width: 40%;
+    font-weight: 600;
+}
+
+.gd-audit-config__table td {
+    word-break: break-word;
+}
