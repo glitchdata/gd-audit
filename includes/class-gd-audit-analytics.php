@@ -248,6 +248,63 @@ class GDAuditAnalytics {
     }
 
     /**
+     * Aggregates link metrics from recently published content.
+     */
+    public function get_link_analytics($args = []) {
+        $defaults = [
+            'post_types'  => ['post', 'page'],
+            'sample_size' => 75,
+        ];
+
+        $args   = wp_parse_args($args, $defaults);
+        $sample = $this->scan_linked_posts((array) $args['post_types'], (int) $args['sample_size']);
+
+        $overview = [
+            'scanned'  => $sample['scanned'],
+            'total'    => $sample['total_links'],
+            'internal' => $sample['internal_links'],
+            'external' => $sample['external_links'],
+        ];
+
+        $top_posts = [];
+        if ($sample['post_link_counts']) {
+            arsort($sample['post_link_counts']);
+            $post_ids = array_slice(array_keys($sample['post_link_counts']), 0, 5);
+            foreach ($post_ids as $post_id) {
+                $post = get_post($post_id);
+                if (!$post) {
+                    continue;
+                }
+
+                $top_posts[] = [
+                    'id'       => $post_id,
+                    'title'    => get_the_title($post),
+                    'count'    => $sample['post_link_counts'][$post_id],
+                    'edit_url' => get_edit_post_link($post_id, ''),
+                    'view_url' => get_permalink($post_id),
+                ];
+            }
+        }
+
+        $top_domains = [];
+        if ($sample['domains']) {
+            arsort($sample['domains']);
+            foreach (array_slice($sample['domains'], 0, 5, true) as $domain => $count) {
+                $top_domains[] = [
+                    'domain' => $domain,
+                    'count'  => $count,
+                ];
+            }
+        }
+
+        return [
+            'overview'   => $overview,
+            'top_posts'  => $top_posts,
+            'top_domains'=> $top_domains,
+        ];
+    }
+
+    /**
      * Provides aggregate stats for image attachments.
      */
     public function get_image_overview() {
@@ -363,6 +420,127 @@ class GDAuditAnalytics {
         }
 
         return $total;
+    }
+
+    /**
+     * Builds a snapshot of links contained in recent content.
+     */
+    private function scan_linked_posts(array $post_types, $sample_size) {
+        $sample_size = max(1, (int) $sample_size);
+
+        $posts = get_posts([
+            'post_type'      => $post_types,
+            'post_status'    => 'publish',
+            'posts_per_page' => $sample_size,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'no_found_rows'  => true,
+        ]);
+
+        $stats = [
+            'scanned'          => count($posts),
+            'total_links'      => 0,
+            'internal_links'   => 0,
+            'external_links'   => 0,
+            'post_link_counts' => [],
+            'domains'          => [],
+        ];
+
+        if (!$posts) {
+            return $stats;
+        }
+
+        foreach ($posts as $post) {
+            $links = $this->extract_links_from_content($post->post_content);
+            if (!$links) {
+                continue;
+            }
+
+            $stats['post_link_counts'][$post->ID] = count($links);
+
+            foreach ($links as $href) {
+                $stats['total_links']++;
+                if ($this->is_internal_url($href)) {
+                    $stats['internal_links']++;
+                } else {
+                    $stats['external_links']++;
+                    $domain = $this->normalize_domain($href);
+                    if ($domain) {
+                        if (!isset($stats['domains'][$domain])) {
+                            $stats['domains'][$domain] = 0;
+                        }
+                        $stats['domains'][$domain]++;
+                    }
+                }
+            }
+        }
+
+        return $stats;
+    }
+
+    /**
+     * Extracts anchor href values from post content.
+     */
+    private function extract_links_from_content($content) {
+        if (empty($content)) {
+            return [];
+        }
+
+        $links = [];
+        if (preg_match_all("/<a\s[^>]*href=(\"|')(.*?)(\"|')/is", $content, $matches)) {
+            foreach ($matches[2] as $href) {
+                $href = trim($href);
+                if ('' === $href) {
+                    continue;
+                }
+
+                if (stripos($href, 'javascript:') === 0 || stripos($href, 'mailto:') === 0) {
+                    continue;
+                }
+
+                $links[] = $href;
+            }
+        }
+
+        return $links;
+    }
+
+    /**
+     * Checks whether a URL belongs to the current site.
+     */
+    private function is_internal_url($url) {
+        if (empty($url)) {
+            return true;
+        }
+
+        $parsed = wp_parse_url($url);
+        if (false === $parsed) {
+            return false;
+        }
+
+        if (empty($parsed['host'])) {
+            return true;
+        }
+
+        $site_host = wp_parse_url(home_url(), PHP_URL_HOST);
+        return $parsed['host'] === $site_host;
+    }
+
+    /**
+     * Normalizes a domain for display.
+     */
+    private function normalize_domain($url) {
+        $parsed = wp_parse_url($url);
+        if (false === $parsed || empty($parsed['host'])) {
+            return '';
+        }
+
+        $host = strtolower($parsed['host']);
+        if (0 === strpos($host, 'www.')) {
+            $host = substr($host, 4);
+        }
+
+        return $host;
     }
 
     /**

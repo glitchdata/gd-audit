@@ -85,6 +85,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Links', 'gd-audit'),
+            __('Links', 'gd-audit'),
+            'manage_options',
+            'gd-audit-links',
+            [$this, 'render_links_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Images', 'gd-audit'),
             __('Images', 'gd-audit'),
             'manage_options',
@@ -157,6 +166,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-logs',
             'gd-audit_page_gd-audit-plugins',
             'gd-audit_page_gd-audit-themes',
+            'gd-audit_page_gd-audit-links',
             'gd-audit_page_gd-audit-images',
             'gd-audit_page_gd-audit-users',
             'gd-audit_page_gd-audit-database',
@@ -252,6 +262,19 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays link analytics summaries.
+     */
+    public function render_links_page() {
+        $report      = $this->analytics->get_link_analytics();
+        $overview    = $report['overview'];
+        $top_posts   = $report['top_posts'];
+        $top_domains = $report['top_domains'];
+        $nav_tabs    = $this->get_nav_tabs('links');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/links-page.php';
+    }
+
+    /**
      * Displays user analytics.
      */
     public function render_users_page() {
@@ -329,6 +352,10 @@ class GDAuditAdminPage {
             'themes' => [
                 'label' => __('Themes', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-themes'),
+            ],
+            'links' => [
+                'label' => __('Links', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-links'),
             ],
             'images' => [
                 'label' => __('Images', 'gd-audit'),
