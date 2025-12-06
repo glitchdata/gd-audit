@@ -268,13 +268,9 @@ class GDAuditLogger {
      * Writes a row to the audit log table.
      */
     private function log_event($event_type, $object_type, $object_id, $message, $context = []) {
-        if (!$this->settings->is_event_enabled($event_type)) {
-            return;
-        }
-
         global $wpdb;
 
-        $ip_address = $this->settings->should_mask_ip() ? '' : $this->get_ip_address();
+        $ip_address = $this->get_ip_address();
 
         $wpdb->insert(
             $this->table_name,
@@ -292,8 +288,6 @@ class GDAuditLogger {
                 '%s', '%s', '%d', '%d', '%s', '%s', '%s', '%s',
             ]
         );
-
-        $this->maybe_prune_logs();
     }
 
     /**
@@ -307,24 +301,4 @@ class GDAuditLogger {
         return sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR']));
     }
 
-    /**
-     * Deletes logs older than the configured retention window.
-     */
-    private function maybe_prune_logs() {
-        $retention_days = $this->settings->get_retention_days();
-
-        if ($retention_days <= 0) {
-            return;
-        }
-
-        global $wpdb;
-
-        $cutoff = gmdate('Y-m-d H:i:s', time() - (DAY_IN_SECONDS * $retention_days));
-        $wpdb->query(
-            $wpdb->prepare(
-                "DELETE FROM {$this->table_name} WHERE created_at < %s",
-                $cutoff
-            )
-        );
-    }
 }
