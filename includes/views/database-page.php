@@ -63,6 +63,28 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                     $checked_display   = $checked_timestamp ? wp_date($date_format, $checked_timestamp) : __('Never', 'gd-audit');
                     $row_format        = !empty($table['row_format']) ? $table['row_format'] : __('Unknown', 'gd-audit');
                     $avg_row_length    = $table['avg_row_length'] > 0 ? size_format($table['avg_row_length'], 2) : __('N/A', 'gd-audit');
+                    $detail_payload    = [
+                        'name'          => $table['name'],
+                        'subtitle'      => !empty($table['is_wp_table']) ? __('WordPress table', 'gd-audit') : __('Custom table', 'gd-audit'),
+                        'engine'        => $table['engine'] ? $table['engine'] : __('Unknown', 'gd-audit'),
+                        'collation'     => $table['collation'] ? $table['collation'] : __('Unknown', 'gd-audit'),
+                        'rows'          => number_format_i18n($table['rows']),
+                        'dataSize'      => size_format($table['data_length'], 2),
+                        'indexSize'     => size_format($table['index_length'], 2),
+                        'totalSize'     => size_format($total_bytes, 2),
+                        'freeSpace'     => size_format($table['data_free'], 2),
+                        'autoIncrement' => number_format_i18n($table['auto_increment']),
+                        'rowFormat'     => $row_format,
+                        'avgRowLength'  => $avg_row_length,
+                        'created'       => $created_display,
+                        'updated'       => $updated_display,
+                        'checked'       => $checked_display,
+                        'comment'       => isset($table['comment']) ? $table['comment'] : '',
+                    ];
+                    $detail_json = wp_json_encode($detail_payload);
+                    if (false === $detail_json) {
+                        $detail_json = '{}';
+                    }
                     ?>
                     <tr>
                         <td>
@@ -70,10 +92,17 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                             <p class="gd-audit__meta">
                                 <?php if (!empty($table['is_wp_table'])) : ?>
                                     <span class="gd-audit__badge is-active"><?php esc_html_e('WP', 'gd-audit'); ?></span>
+                                <?php else : ?>
+                                    <span class="gd-audit__badge is-inactive"><?php esc_html_e('Custom', 'gd-audit'); ?></span>
                                 <?php endif; ?>
-                                <?php if (!empty($table['comment'])) : ?>
-                                    <?php echo esc_html($table['comment']); ?>
-                                <?php endif; ?>
+                            </p>
+                            <p class="gd-audit__table-actions">
+                                <button type="button"
+                                    class="gd-audit__table-details-trigger button button-link"
+                                    data-table-details="<?php echo esc_attr($detail_json); ?>"
+                                    aria-haspopup="dialog">
+                                    <?php esc_html_e('View details', 'gd-audit'); ?>
+                                </button>
                             </p>
                         </td>
                         <td><?php echo esc_html($table['engine']); ?></td>
@@ -93,52 +122,6 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                         <td><?php echo esc_html(size_format($total_bytes, 2)); ?></td>
                         <td><?php echo esc_html($table['collation']); ?></td>
                     </tr>
-                    <tr class="gd-audit__table-details-row">
-                        <td colspan="7">
-                            <details class="gd-audit__table-details">
-                                <summary>
-                                    <span class="gd-audit__details-label">
-                                        <?php printf(esc_html__('Details for %s', 'gd-audit'), esc_html($table['name'])); ?>
-                                    </span>
-                                    <span class="gd-audit__details-meta">
-                                        <?php printf(esc_html__('Auto increment: %s', 'gd-audit'), esc_html(number_format_i18n($table['auto_increment']))); ?>
-                                    </span>
-                                </summary>
-                                <div class="gd-audit__table-details-grid">
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Row format', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($row_format); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Average row length', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($avg_row_length); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Free space', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html(size_format($table['data_free'], 2)); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Created at', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($created_display); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Updated at', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($updated_display); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Last checked', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($checked_display); ?></p>
-                                    </div>
-                                </div>
-                                <?php if (!empty($table['comment'])) : ?>
-                                    <div class="gd-audit__table-details-note">
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Table comment', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($table['comment']); ?></p>
-                                    </div>
-                                <?php endif; ?>
-                            </details>
-                        </td>
-                    </tr>
                 <?php endforeach; ?>
             <?php else : ?>
                 <tr>
@@ -147,4 +130,184 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
             <?php endif; ?>
         </tbody>
     </table>
+
+    <div id="gd-audit-table-modal" class="gd-audit-modal" aria-hidden="true" hidden>
+        <div class="gd-audit-modal__backdrop" data-action="close"></div>
+        <div class="gd-audit-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="gd-audit-table-modal-title">
+            <button type="button" class="gd-audit-modal__close" data-action="close" aria-label="<?php esc_attr_e('Close details window', 'gd-audit'); ?>">&times;</button>
+            <h2 id="gd-audit-table-modal-title" class="gd-audit-modal__title"><?php esc_html_e('Table details', 'gd-audit'); ?></h2>
+            <p class="gd-audit-modal__subtitle" data-field="subtitle"></p>
+            <div class="gd-audit-modal__grid">
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Engine', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="engine">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Collation', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="collation">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Rows', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="rows">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Data size', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="dataSize">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Index size', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="indexSize">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Total size', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="totalSize">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Free space', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="freeSpace">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Auto increment', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="autoIncrement">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Row format', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="rowFormat">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Average row length', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="avgRowLength">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Created at', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="created">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Updated at', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="updated">—</p>
+                </div>
+                <div>
+                    <p class="gd-audit__detail-label"><?php esc_html_e('Last checked', 'gd-audit'); ?></p>
+                    <p class="gd-audit__detail-value" data-field="checked">—</p>
+                </div>
+            </div>
+            <div class="gd-audit-modal__note" data-field="comment-wrapper" hidden>
+                <p class="gd-audit__detail-label"><?php esc_html_e('Table comment', 'gd-audit'); ?></p>
+                <p class="gd-audit__detail-value" data-field="comment"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const modal = document.getElementById('gd-audit-table-modal');
+        if (!modal) {
+            return;
+        }
+
+        const titleEl = modal.querySelector('#gd-audit-table-modal-title');
+        const subtitleEl = modal.querySelector('[data-field="subtitle"]');
+        const commentWrapper = modal.querySelector('[data-field="comment-wrapper"]');
+        const commentField = modal.querySelector('[data-field="comment"]');
+        const fieldNames = ['engine', 'collation', 'rows', 'dataSize', 'indexSize', 'totalSize', 'freeSpace', 'autoIncrement', 'rowFormat', 'avgRowLength', 'created', 'updated', 'checked'];
+        const fields = {};
+
+        fieldNames.forEach(function(key) {
+            fields[key] = modal.querySelector('[data-field="' + key + '"]');
+        });
+
+        const closeElements = modal.querySelectorAll('[data-action="close"]');
+        let lastActiveElement = null;
+
+        function closeModal() {
+            modal.hidden = true;
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('gd-audit-modal-open');
+            if (lastActiveElement && typeof lastActiveElement.focus === 'function') {
+                lastActiveElement.focus({ preventScroll: true });
+            }
+        }
+
+        function openModal(data) {
+            lastActiveElement = document.activeElement;
+            modal.hidden = false;
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('gd-audit-modal-open');
+
+            if (titleEl) {
+                titleEl.textContent = data.name || '<?php echo esc_js(__('Table details', 'gd-audit')); ?>';
+            }
+
+            if (subtitleEl) {
+                subtitleEl.textContent = data.subtitle || '';
+                subtitleEl.style.display = data.subtitle ? '' : 'none';
+            }
+
+            fieldNames.forEach(function(key) {
+                if (!fields[key]) {
+                    return;
+                }
+                const value = data[key] && data[key] !== '' ? data[key] : '—';
+                fields[key].textContent = value;
+            });
+
+            if (commentWrapper && commentField) {
+                if (data.comment) {
+                    commentWrapper.hidden = false;
+                    commentField.textContent = data.comment;
+                } else {
+                    commentWrapper.hidden = true;
+                    commentField.textContent = '';
+                }
+            }
+
+            const focusTarget = modal.querySelector('[data-action="close"]');
+            if (focusTarget) {
+                focusTarget.focus({ preventScroll: true });
+            }
+        }
+
+        document.addEventListener('click', function(event) {
+            const trigger = event.target.closest('.gd-audit__table-details-trigger');
+            if (!trigger) {
+                return;
+            }
+
+            const payload = trigger.getAttribute('data-table-details');
+            if (!payload) {
+                return;
+            }
+
+            event.preventDefault();
+
+            try {
+                const data = JSON.parse(payload);
+                openModal(data);
+            } catch (error) {
+                if (window.console && console.error) {
+                    console.error('GD Audit: invalid table payload', error);
+                }
+            }
+        });
+
+        closeElements.forEach(function(element) {
+            element.addEventListener('click', function(event) {
+                event.preventDefault();
+                closeModal();
+            });
+        });
+
+        modal.addEventListener('click', function(event) {
+            if (event.target.classList.contains('gd-audit-modal__backdrop')) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && !modal.hidden) {
+                closeModal();
+            }
+        });
+    })();
+    </script>
 </div>

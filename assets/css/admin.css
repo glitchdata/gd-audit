@@ -267,39 +267,95 @@
     margin: 4px 0;
 }
 
-.gd-audit__table-details-row td {
-    background: #f8f9fb;
-    padding: 12px 16px 16px;
+.gd-audit__table-actions {
+    margin: 6px 0 0;
 }
 
-.gd-audit__table-details {
-    margin: 0;
-    display: block;
-}
-
-.gd-audit__table-details summary {
-    cursor: pointer;
+.gd-audit__table-details-trigger {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #0d6efd;
     font-weight: 600;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
+    cursor: pointer;
 }
 
-.gd-audit__details-label {
+.gd-audit__table-details-trigger:focus,
+.gd-audit__table-details-trigger:hover {
+    text-decoration: underline;
+}
+
+.gd-audit-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+}
+
+.gd-audit-modal[hidden] {
+    display: none;
+}
+
+.gd-audit-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.gd-audit-modal__dialog {
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    width: min(640px, calc(100% - 36px));
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.35);
+}
+
+.gd-audit-modal__close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    border: none;
+    background: transparent;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #666;
+    cursor: pointer;
+}
+
+.gd-audit-modal__close:hover,
+.gd-audit-modal__close:focus {
+    color: #111;
+}
+
+.gd-audit-modal__title {
+    margin: 0 0 6px;
+}
+
+.gd-audit-modal__subtitle {
+    margin: 0 0 20px;
+    color: #6b6b6b;
     font-size: 0.95rem;
 }
 
-.gd-audit__details-meta {
-    font-size: 0.85rem;
-    color: #666;
+.gd-audit-modal__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
 }
 
-.gd-audit__table-details-grid {
-    margin-top: 12px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 12px;
+.gd-audit-modal__note {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e0e0e0;
+}
+
+body.gd-audit-modal-open {
+    overflow: hidden;
 }
 
 .gd-audit__detail-label {
@@ -316,11 +372,7 @@
     font-weight: 600;
 }
 
-.gd-audit__table-details-note {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid #e0e0e0;
-}
+
 
 .gd-audit__badge {
     display: inline-flex;
