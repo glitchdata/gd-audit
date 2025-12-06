@@ -3,8 +3,6 @@
 GD Audit is a lightweight WordPress plugin that records key user actions, surfaces them in a searchable dashboard, and helps site owners track changes.
 
 ## Features
-- Tracks post status changes, user profile edits, registrations, deletions, and logins.
-- Stores audit records in a dedicated custom table to avoid bloating core logs.
 - Adds a dedicated top-level `GD Audit` admin menu with Dashboard, Logs, and Settings tabs.
 - Dashboard tab surfaces post analytics (status totals, daily publish trend, top authors, and recent publications).
 - Plugins tab lists every installed plugin with activation status and update availability signals.

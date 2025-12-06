@@ -103,7 +103,7 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                             <details class="gd-audit__table-details">
                                 <summary class="gd-audit__table-details-summary">
                                     <span class="gd-audit__details-icon" aria-hidden="true"></span>
-                                    <span class="gd-audit__details-text"><?php esc_html_e('View table details', 'gd-audit'); ?></span>
+                                    <span class="gd-audit__details-text"><?php esc_html_e('Display Fields', 'gd-audit'); ?></span>
                                 </summary>
                                 <div class="gd-audit__table-details-body">
                                     <div class="gd-audit__table-details-grid">
