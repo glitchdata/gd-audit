@@ -132,6 +132,36 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                         <p class="gd-audit__detail-value"><?php echo esc_html($checked_display); ?></p>
                                     </div>
                                 </div>
+                                <?php if (!empty($table['columns'])) : ?>
+                                    <div class="gd-audit__table-details-columns">
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Fields', 'gd-audit'); ?></p>
+                                        <ul class="gd-audit__columns-list">
+                                            <?php foreach ($table['columns'] as $column) : ?>
+                                                <li>
+                                                    <span class="gd-audit__column-name"><?php echo esc_html($column['name']); ?></span>
+                                                    <span class="gd-audit__column-type"><?php echo esc_html($column['type']); ?></span>
+                                                    <?php if (!empty($column['key'])) : ?>
+                                                        <span class="gd-audit__column-key"><?php echo esc_html($column['key']); ?></span>
+                                                    <?php endif; ?>
+                                                </li>
+                                            <?php endforeach; ?>
+                                        </ul>
+                                        <?php
+                                        $total_columns = isset($table['column_total']) ? (int) $table['column_total'] : count($table['columns']);
+                                        if ($total_columns > count($table['columns'])) :
+                                            ?>
+                                            <p class="gd-audit__detail-meta">
+                                                <?php
+                                                printf(
+                                                    esc_html__('Showing %1$d of %2$d fields', 'gd-audit'),
+                                                    count($table['columns']),
+                                                    $total_columns
+                                                );
+                                                ?>
+                                            </p>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php endif; ?>
                                 <?php if (!empty($table['comment'])) : ?>
                                     <div class="gd-audit__table-details-note">
                                         <p class="gd-audit__detail-label"><?php esc_html_e('Table comment', 'gd-audit'); ?></p>

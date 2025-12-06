@@ -24,6 +24,7 @@ class GDAuditDatabaseInspector {
 
         $tables = [];
         foreach ($results as $row) {
+            $column_info = $this->get_table_columns($row['Name']);
             $tables[] = [
                 'name'          => $row['Name'],
                 'engine'        => $row['Engine'],
@@ -41,6 +42,8 @@ class GDAuditDatabaseInspector {
                 'create_time'   => isset($row['Create_time']) ? $row['Create_time'] : null,
                 'update_time'   => isset($row['Update_time']) ? $row['Update_time'] : null,
                 'check_time'    => isset($row['Check_time']) ? $row['Check_time'] : null,
+                'columns'       => $column_info['columns'],
+                'column_total'  => $column_info['total'],
             ];
         }
 
@@ -73,5 +76,59 @@ class GDAuditDatabaseInspector {
         }
 
         return $summary;
+    }
+
+    /**
+     * Retrieves column definitions for a table with a sane display limit.
+     */
+    private function get_table_columns($table_name, $limit = 12) {
+        global $wpdb;
+
+        if (empty($table_name)) {
+            return [
+                'columns' => [],
+                'total'   => 0,
+            ];
+        }
+
+        $safe_name = $this->escape_table_name($table_name);
+        $query     = sprintf('SHOW FULL COLUMNS FROM `%s`', $safe_name);
+        $rows      = $wpdb->get_results($query, ARRAY_A);
+
+        if (!$rows) {
+            return [
+                'columns' => [],
+                'total'   => 0,
+            ];
+        }
+
+        $columns = [];
+        foreach ($rows as $column) {
+            $columns[] = [
+                'name'    => $column['Field'],
+                'type'    => strtoupper($column['Type']),
+                'key'     => $column['Key'],
+                'null'    => ('YES' === strtoupper($column['Null'])),
+                'default' => $column['Default'],
+                'extra'   => $column['Extra'],
+            ];
+        }
+
+        $total = count($columns);
+        if ($limit > 0 && $total > $limit) {
+            $columns = array_slice($columns, 0, $limit);
+        }
+
+        return [
+            'columns' => $columns,
+            'total'   => $total,
+        ];
+    }
+
+    /**
+     * Escapes table identifiers for SHOW queries.
+     */
+    private function escape_table_name($table_name) {
+        return str_replace('`', '``', $table_name);
     }
 }
