@@ -80,6 +80,26 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                     <?php echo esc_html($table['comment']); ?>
                                 </p>
                             <?php endif; ?>
+                        </td>
+                        <td><?php echo esc_html($table['engine']); ?></td>
+                        <td><?php echo esc_html(number_format_i18n($table['rows'])); ?></td>
+                        <td>
+                            <?php echo esc_html(size_format($table['data_length'], 2)); ?>
+                            <?php if ($table['data_free'] > 0) : ?>
+                                <p class="gd-audit__meta"><?php printf(esc_html__('Free: %s', 'gd-audit'), esc_html(size_format($table['data_free'], 2))); ?></p>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <?php echo esc_html(size_format($table['index_length'], 2)); ?>
+                            <?php if ($table['index_length'] <= 0) : ?>
+                                <p class="gd-audit__meta"><?php esc_html_e('No indexes', 'gd-audit'); ?></p>
+                            <?php endif; ?>
+                        </td>
+                        <td><?php echo esc_html(size_format($total_bytes, 2)); ?></td>
+                        <td><?php echo esc_html($table['collation']); ?></td>
+                    </tr>
+                    <tr class="gd-audit__table-details-row">
+                        <td colspan="7">
                             <details class="gd-audit__table-details">
                                 <summary class="gd-audit__table-details-summary">
                                     <span class="gd-audit__details-icon" aria-hidden="true"></span>
@@ -117,15 +137,15 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                             <p class="gd-audit__detail-label"><?php esc_html_e('Fields', 'gd-audit'); ?></p>
                                             <div class="gd-audit__columns-box">
                                                 <ul class="gd-audit__columns-list">
-                                                <?php foreach ($table['columns'] as $column) : ?>
-                                                    <li>
-                                                        <span class="gd-audit__column-name"><?php echo esc_html($column['name']); ?></span>
-                                                        <span class="gd-audit__column-type"><?php echo esc_html($column['type']); ?></span>
-                                                        <?php if (!empty($column['key'])) : ?>
-                                                            <span class="gd-audit__column-key"><?php echo esc_html($column['key']); ?></span>
-                                                        <?php endif; ?>
-                                                    </li>
-                                                <?php endforeach; ?>
+                                                    <?php foreach ($table['columns'] as $column) : ?>
+                                                        <li>
+                                                            <span class="gd-audit__column-name"><?php echo esc_html($column['name']); ?></span>
+                                                            <span class="gd-audit__column-type"><?php echo esc_html($column['type']); ?></span>
+                                                            <?php if (!empty($column['key'])) : ?>
+                                                                <span class="gd-audit__column-key"><?php echo esc_html($column['key']); ?></span>
+                                                            <?php endif; ?>
+                                                        </li>
+                                                    <?php endforeach; ?>
                                                 </ul>
                                             </div>
                                             <?php
@@ -147,22 +167,6 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                 </div>
                             </details>
                         </td>
-                        <td><?php echo esc_html($table['engine']); ?></td>
-                        <td><?php echo esc_html(number_format_i18n($table['rows'])); ?></td>
-                        <td>
-                            <?php echo esc_html(size_format($table['data_length'], 2)); ?>
-                            <?php if ($table['data_free'] > 0) : ?>
-                                <p class="gd-audit__meta"><?php printf(esc_html__('Free: %s', 'gd-audit'), esc_html(size_format($table['data_free'], 2))); ?></p>
-                            <?php endif; ?>
-                        </td>
-                        <td>
-                            <?php echo esc_html(size_format($table['index_length'], 2)); ?>
-                            <?php if ($table['index_length'] <= 0) : ?>
-                                <p class="gd-audit__meta"><?php esc_html_e('No indexes', 'gd-audit'); ?></p>
-                            <?php endif; ?>
-                        </td>
-                        <td><?php echo esc_html(size_format($total_bytes, 2)); ?></td>
-                        <td><?php echo esc_html($table['collation']); ?></td>
                     </tr>
                 <?php endforeach; ?>
             <?php else : ?>

@@ -267,8 +267,14 @@
     margin: 4px 0;
 }
 
+.gd-audit__table-details-row td {
+    padding: 0;
+    border-top: 0;
+    background: transparent;
+}
+
 .gd-audit__table-details {
-    margin-top: 10px;
+    margin-top: 0;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     display: block;
