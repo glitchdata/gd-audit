@@ -199,13 +199,12 @@ class GDAuditAdminPage {
     public function render_dashboard_page() {
         $nav_tabs = $this->get_nav_tabs('dashboard');
 
-        $settings_data       = $this->settings->get_settings();
-        $enabled_events      = isset($settings_data['enabled_events']) ? (array) $settings_data['enabled_events'] : [];
-        $enabled_event_count = count($enabled_events);
-        $retention_days      = isset($settings_data['retention_days']) ? (int) $settings_data['retention_days'] : 0;
-        $retention_label     = $retention_days > 0
-            ? sprintf(_n('%d day', '%d days', $retention_days, 'gd-audit'), $retention_days)
-            : __('No limit', 'gd-audit');
+        $settings_data  = $this->settings->get_settings();
+        $license_key    = isset($settings_data['license_key']) ? (string) $settings_data['license_key'] : '';
+        $license_status = $license_key ? __('Active', 'gd-audit') : __('Not set', 'gd-audit');
+        $license_hint   = $license_key
+            ? sprintf(__('Key ending in %s', 'gd-audit'), substr($license_key, -4))
+            : __('No license key saved', 'gd-audit');
 
         $post_status_totals = $this->analytics->get_post_status_totals();
         $published_total    = 0;
@@ -362,12 +361,12 @@ class GDAuditAdminPage {
             [
                 'key'           => 'settings',
                 'label'         => __('Settings', 'gd-audit'),
-                'description'   => __('Tune what gets logged and retained.', 'gd-audit'),
-                'primary_value' => number_format_i18n($enabled_event_count),
-                'primary_label' => __('Events monitored', 'gd-audit'),
+                'description'   => __('Manage license activation and updates.', 'gd-audit'),
+                'primary_value' => $license_status,
+                'primary_label' => __('License status', 'gd-audit'),
                 'items'         => [
-                    sprintf(__('Retention: %s', 'gd-audit'), $retention_label),
-                    sprintf(__('IP masking: %s', 'gd-audit'), !empty($settings_data['mask_ip']) ? __('On', 'gd-audit') : __('Off', 'gd-audit')),
+                    $license_hint,
+                    __('Needed for premium updates', 'gd-audit'),
                 ],
                 'url'           => admin_url('admin.php?page=gd-audit-settings'),
             ],
@@ -515,7 +514,6 @@ class GDAuditAdminPage {
      */
     public function render_settings_page() {
         $settings    = $this->settings->get_settings();
-        $events      = $this->settings->get_available_events();
         $option_key  = GDAuditSettings::OPTION_KEY;
         $nav_tabs = $this->get_nav_tabs('settings');
 
