@@ -77,6 +77,76 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                     <?php echo esc_html($table['comment']); ?>
                                 <?php endif; ?>
                             </p>
+                            <details class="gd-audit__table-details">
+                                <summary class="gd-audit__table-details-summary">
+                                    <span class="gd-audit__details-icon" aria-hidden="true"></span>
+                                    <span class="gd-audit__details-text"><?php esc_html_e('View table details', 'gd-audit'); ?></span>
+                                </summary>
+                                <div class="gd-audit__table-details-body">
+                                    <div class="gd-audit__table-details-grid">
+                                        <div>
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Row format', 'gd-audit'); ?></p>
+                                            <p class="gd-audit__detail-value"><?php echo esc_html($row_format); ?></p>
+                                        </div>
+                                        <div>
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Average row length', 'gd-audit'); ?></p>
+                                            <p class="gd-audit__detail-value"><?php echo esc_html($avg_row_length); ?></p>
+                                        </div>
+                                        <div>
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Free space', 'gd-audit'); ?></p>
+                                            <p class="gd-audit__detail-value"><?php echo esc_html(size_format($table['data_free'], 2)); ?></p>
+                                        </div>
+                                        <div>
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Created at', 'gd-audit'); ?></p>
+                                            <p class="gd-audit__detail-value"><?php echo esc_html($created_display); ?></p>
+                                        </div>
+                                        <div>
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Updated at', 'gd-audit'); ?></p>
+                                            <p class="gd-audit__detail-value"><?php echo esc_html($updated_display); ?></p>
+                                        </div>
+                                        <div>
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Last checked', 'gd-audit'); ?></p>
+                                            <p class="gd-audit__detail-value"><?php echo esc_html($checked_display); ?></p>
+                                        </div>
+                                    </div>
+                                    <?php if (!empty($table['columns'])) : ?>
+                                        <div class="gd-audit__table-details-columns">
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Fields', 'gd-audit'); ?></p>
+                                            <ul class="gd-audit__columns-list">
+                                                <?php foreach ($table['columns'] as $column) : ?>
+                                                    <li>
+                                                        <span class="gd-audit__column-name"><?php echo esc_html($column['name']); ?></span>
+                                                        <span class="gd-audit__column-type"><?php echo esc_html($column['type']); ?></span>
+                                                        <?php if (!empty($column['key'])) : ?>
+                                                            <span class="gd-audit__column-key"><?php echo esc_html($column['key']); ?></span>
+                                                        <?php endif; ?>
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                            <?php
+                                            $total_columns = isset($table['column_total']) ? (int) $table['column_total'] : count($table['columns']);
+                                            if ($total_columns > count($table['columns'])) :
+                                                ?>
+                                                <p class="gd-audit__detail-meta">
+                                                    <?php
+                                                    printf(
+                                                        esc_html__('Showing %1$d of %2$d fields', 'gd-audit'),
+                                                        count($table['columns']),
+                                                        $total_columns
+                                                    );
+                                                    ?>
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                    <?php if (!empty($table['comment'])) : ?>
+                                        <div class="gd-audit__table-details-note">
+                                            <p class="gd-audit__detail-label"><?php esc_html_e('Table comment', 'gd-audit'); ?></p>
+                                            <p class="gd-audit__detail-value"><?php echo esc_html($table['comment']); ?></p>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </details>
                         </td>
                         <td><?php echo esc_html($table['engine']); ?></td>
                         <td><?php echo esc_html(number_format_i18n($table['rows'])); ?></td>
@@ -94,82 +164,6 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                         </td>
                         <td><?php echo esc_html(size_format($total_bytes, 2)); ?></td>
                         <td><?php echo esc_html($table['collation']); ?></td>
-                    </tr>
-                    <tr class="gd-audit__table-details-row">
-                        <td colspan="7">
-                            <details class="gd-audit__table-details">
-                                <summary>
-                                    <span class="gd-audit__details-label">
-                                        <?php printf(esc_html__('Details for %s', 'gd-audit'), esc_html($table['name'])); ?>
-                                    </span>
-                                    <span class="gd-audit__details-meta">
-                                        <?php printf(esc_html__('Auto increment: %s', 'gd-audit'), esc_html(number_format_i18n($table['auto_increment']))); ?>
-                                    </span>
-                                </summary>
-                                <div class="gd-audit__table-details-grid">
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Row format', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($row_format); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Average row length', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($avg_row_length); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Free space', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html(size_format($table['data_free'], 2)); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Created at', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($created_display); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Updated at', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($updated_display); ?></p>
-                                    </div>
-                                    <div>
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Last checked', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($checked_display); ?></p>
-                                    </div>
-                                </div>
-                                <?php if (!empty($table['columns'])) : ?>
-                                    <div class="gd-audit__table-details-columns">
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Fields', 'gd-audit'); ?></p>
-                                        <ul class="gd-audit__columns-list">
-                                            <?php foreach ($table['columns'] as $column) : ?>
-                                                <li>
-                                                    <span class="gd-audit__column-name"><?php echo esc_html($column['name']); ?></span>
-                                                    <span class="gd-audit__column-type"><?php echo esc_html($column['type']); ?></span>
-                                                    <?php if (!empty($column['key'])) : ?>
-                                                        <span class="gd-audit__column-key"><?php echo esc_html($column['key']); ?></span>
-                                                    <?php endif; ?>
-                                                </li>
-                                            <?php endforeach; ?>
-                                        </ul>
-                                        <?php
-                                        $total_columns = isset($table['column_total']) ? (int) $table['column_total'] : count($table['columns']);
-                                        if ($total_columns > count($table['columns'])) :
-                                            ?>
-                                            <p class="gd-audit__detail-meta">
-                                                <?php
-                                                printf(
-                                                    esc_html__('Showing %1$d of %2$d fields', 'gd-audit'),
-                                                    count($table['columns']),
-                                                    $total_columns
-                                                );
-                                                ?>
-                                            </p>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endif; ?>
-                                <?php if (!empty($table['comment'])) : ?>
-                                    <div class="gd-audit__table-details-note">
-                                        <p class="gd-audit__detail-label"><?php esc_html_e('Table comment', 'gd-audit'); ?></p>
-                                        <p class="gd-audit__detail-value"><?php echo esc_html($table['comment']); ?></p>
-                                    </div>
-                                <?php endif; ?>
-                            </details>
-                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else : ?>
