@@ -270,7 +270,7 @@
 .gd-audit__table-details-row td {
     padding: 0;
     border-top: 0;
-    background: transparent;
+    background: #fff;
 }
 
 .gd-audit__table-details {
