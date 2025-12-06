@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: GD Audit
- * Description: Lightweight audit trail for WordPress that records key user actions and surfaces them in a searchable dashboard.
+ * Description: Lightweight audit tool for WordPress that displays key installation details into a dashboard.
  * Version: 1.0.0
  * Requires at least: 6.0
  * Requires PHP: 7.4
