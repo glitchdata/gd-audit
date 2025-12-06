@@ -112,7 +112,8 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                     <?php if (!empty($table['columns'])) : ?>
                                         <div class="gd-audit__table-details-columns">
                                             <p class="gd-audit__detail-label"><?php esc_html_e('Fields', 'gd-audit'); ?></p>
-                                            <ul class="gd-audit__columns-list">
+                                            <div class="gd-audit__columns-box">
+                                                <ul class="gd-audit__columns-list">
                                                 <?php foreach ($table['columns'] as $column) : ?>
                                                     <li>
                                                         <span class="gd-audit__column-name"><?php echo esc_html($column['name']); ?></span>
@@ -122,7 +123,8 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                                         <?php endif; ?>
                                                     </li>
                                                 <?php endforeach; ?>
-                                            </ul>
+                                                </ul>
+                                            </div>
                                             <?php
                                             $total_columns = isset($table['column_total']) ? (int) $table['column_total'] : count($table['columns']);
                                             if ($total_columns > count($table['columns'])) :

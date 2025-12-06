@@ -341,14 +341,21 @@
     border-top: 1px solid #e0e0e0;
 }
 
-.gd-audit__detail-label {
 .gd-audit__table-details-columns {
     margin-top: 18px;
 }
 
+.gd-audit__columns-box {
+    margin-top: 8px;
+    border: 1px solid #d4dae4;
+    border-radius: 10px;
+    background: #fff;
+    padding: 14px;
+}
+
 .gd-audit__columns-list {
     list-style: none;
-    margin: 8px 0 0;
+    margin: 0;
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -383,11 +390,13 @@
     text-transform: uppercase;
 }
 
+.gd-audit__detail-label {
     margin: 0;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: #6b6b6b;
+    font-weight: 700;
 }
 
 .gd-audit__detail-value {
