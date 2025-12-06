@@ -1,6 +1,6 @@
 <?php
 /**
- * Images analytics page.
+ * Media analytics page.
  */
 
 if (!defined('ABSPATH')) {
@@ -12,14 +12,14 @@ $status_counts = $overview['status'];
 $mime_counts = array_slice($overview['mime_counts'], 0, 5);
 $library_url = admin_url('upload.php');
 ?>
-<div class="wrap gd-audit gd-audit-images">
+<div class="wrap gd-audit gd-audit-media">
     <?php include GD_AUDIT_PLUGIN_DIR . 'includes/views/partials/nav-tabs.php'; ?>
 
-    <h1 class="gd-audit__section-title"><?php esc_html_e('Images', 'gd-audit'); ?></h1>
+    <h1 class="gd-audit__section-title"><?php esc_html_e('Media', 'gd-audit'); ?></h1>
 
     <section class="gd-audit__cards">
         <article class="gd-audit__card">
-            <p class="gd-audit__card-label"><?php esc_html_e('Total images', 'gd-audit'); ?></p>
+            <p class="gd-audit__card-label"><?php esc_html_e('Total media items', 'gd-audit'); ?></p>
             <p class="gd-audit__card-value"><?php echo esc_html(number_format_i18n($total_images)); ?></p>
         </article>
         <article class="gd-audit__card">
@@ -43,7 +43,7 @@ $library_url = admin_url('upload.php');
                 <thead>
                     <tr>
                         <th><?php esc_html_e('Status', 'gd-audit'); ?></th>
-                        <th><?php esc_html_e('Images', 'gd-audit'); ?></th>
+                        <th><?php esc_html_e('Media items', 'gd-audit'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,7 +63,7 @@ $library_url = admin_url('upload.php');
                 <thead>
                     <tr>
                         <th><?php esc_html_e('MIME', 'gd-audit'); ?></th>
-                        <th><?php esc_html_e('Images', 'gd-audit'); ?></th>
+                        <th><?php esc_html_e('Media items', 'gd-audit'); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,7 +107,7 @@ $library_url = admin_url('upload.php');
                     <?php endforeach; ?>
                 </ul>
             <?php else : ?>
-                <p><?php esc_html_e('No image uploads detected.', 'gd-audit'); ?></p>
+                <p><?php esc_html_e('No media uploads detected.', 'gd-audit'); ?></p>
             <?php endif; ?>
         </section>
     </div>

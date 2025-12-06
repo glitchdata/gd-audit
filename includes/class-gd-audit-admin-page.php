@@ -125,11 +125,11 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
-            __('Images', 'gd-audit'),
-            __('Images', 'gd-audit'),
+            __('Media', 'gd-audit'),
+            __('Media', 'gd-audit'),
             'manage_options',
-            'gd-audit-images',
-            [$this, 'render_images_page']
+            'gd-audit-media',
+            [$this, 'render_media_page']
         );
 
         add_submenu_page(
@@ -152,7 +152,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-plugins',
             'gd-audit_page_gd-audit-themes',
             'gd-audit_page_gd-audit-links',
-            'gd-audit_page_gd-audit-images',
+            'gd-audit_page_gd-audit-media',
             'gd-audit_page_gd-audit-users',
             'gd-audit_page_gd-audit-posts',
             'gd-audit_page_gd-audit-database',
@@ -290,16 +290,16 @@ class GDAuditAdminPage {
                 'url'           => admin_url('admin.php?page=gd-audit-links'),
             ],
             [
-                'key'           => 'images',
-                'label'         => __('Images', 'gd-audit'),
+                'key'           => 'media',
+                'label'         => __('Media', 'gd-audit'),
                 'description'   => __('Keep an eye on the media library.', 'gd-audit'),
                 'primary_value' => number_format_i18n($image_overview['total']),
-                'primary_label' => __('Images stored', 'gd-audit'),
+                'primary_label' => __('Media stored', 'gd-audit'),
                 'items'         => [
                     sprintf(__('Library size: %s', 'gd-audit'), size_format($image_overview['total_size'], 2)),
                     sprintf(__('Average file: %s', 'gd-audit'), size_format($image_overview['avg_size'], 2)),
                 ],
-                'url'           => admin_url('admin.php?page=gd-audit-images'),
+                'url'           => admin_url('admin.php?page=gd-audit-media'),
             ],
             [
                 'key'           => 'users',
@@ -459,12 +459,12 @@ class GDAuditAdminPage {
     /**
      * Displays media library analytics.
      */
-    public function render_images_page() {
+    public function render_media_page() {
         $overview      = $this->analytics->get_image_overview();
         $recent_images = $this->analytics->get_recent_images();
-        $nav_tabs      = $this->get_nav_tabs('images');
+        $nav_tabs      = $this->get_nav_tabs('media');
 
-        include GD_AUDIT_PLUGIN_DIR . 'includes/views/images-page.php';
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/media-page.php';
     }
 
     /**
@@ -539,9 +539,9 @@ class GDAuditAdminPage {
                 'label' => __('Themes', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-themes'),
             ],
-            'images' => [
-                'label' => __('Images', 'gd-audit'),
-                'url'   => admin_url('admin.php?page=gd-audit-images'),
+            'media' => [
+                'label' => __('Media', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-media'),
             ],
             'links' => [
                 'label' => __('Links', 'gd-audit'),
