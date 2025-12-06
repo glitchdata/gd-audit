@@ -483,13 +483,6 @@ class GDAuditAnalytics {
                     ['label' => __('Timezone', 'gd-audit'), 'value' => wp_timezone_string()],
                     ['label' => __('Locale', 'gd-audit'), 'value' => get_locale()],
                     ['label' => __('Permalink structure', 'gd-audit'), 'value' => $permalink ? $permalink : __('Plain', 'gd-audit')],
-                    [
-                        'label'       => __('XML-RPC', 'gd-audit'),
-                        'value'       => $this->is_xml_rpc_enabled(),
-                        'is_boolean'  => true,
-                        'true_label'  => __('Enabled', 'gd-audit'),
-                        'false_label' => __('Disabled', 'gd-audit'),
-                    ],
                 ],
             ],
             [
@@ -520,7 +513,7 @@ class GDAuditAnalytics {
                 ],
             ],
             [
-                'title' => __('Feature flags', 'gd-audit'),
+                'title' => __('Feature options', 'gd-audit'),
                 'items' => [
                     [
                         'label'       => __('Multisite', 'gd-audit'),
@@ -567,6 +560,13 @@ class GDAuditAnalytics {
                     [
                         'label'       => __('Auto core updates', 'gd-audit'),
                         'value'       => (bool) $auto_core_updates,
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
+                    [
+                        'label'       => __('XML-RPC', 'gd-audit'),
+                        'value'       => $this->is_xml_rpc_enabled(),
                         'is_boolean'  => true,
                         'true_label'  => __('Enabled', 'gd-audit'),
                         'false_label' => __('Disabled', 'gd-audit'),
