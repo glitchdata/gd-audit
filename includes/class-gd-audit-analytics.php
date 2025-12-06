@@ -483,6 +483,13 @@ class GDAuditAnalytics {
                     ['label' => __('Timezone', 'gd-audit'), 'value' => wp_timezone_string()],
                     ['label' => __('Locale', 'gd-audit'), 'value' => get_locale()],
                     ['label' => __('Permalink structure', 'gd-audit'), 'value' => $permalink ? $permalink : __('Plain', 'gd-audit')],
+                    [
+                        'label'       => __('XML-RPC', 'gd-audit'),
+                        'value'       => $this->is_xml_rpc_enabled(),
+                        'is_boolean'  => true,
+                        'true_label'  => __('Enabled', 'gd-audit'),
+                        'false_label' => __('Disabled', 'gd-audit'),
+                    ],
                 ],
             ],
             [
@@ -779,5 +786,25 @@ class GDAuditAnalytics {
         }
 
         return 0;
+    }
+
+    /**
+     * Determines whether XML-RPC is currently enabled on the site.
+     */
+    private function is_xml_rpc_enabled() {
+        if (defined('XMLRPC_ENABLED')) {
+            return (bool) XMLRPC_ENABLED;
+        }
+
+        if (has_filter('xmlrpc_enabled')) {
+            /**
+             * Mirrors core XML-RPC filter behavior.
+             *
+             * @see xmlrpc_enabled() in wp-includes/functions.php
+             */
+            return (bool) apply_filters('xmlrpc_enabled', true);
+        }
+
+        return true;
     }
 }
