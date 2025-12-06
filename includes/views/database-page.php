@@ -7,7 +7,8 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-$total_size = $summary['data_size'] + $summary['index_size'];
+$total_size  = $summary['data_size'] + $summary['index_size'];
+$date_format = get_option('date_format') . ' ' . get_option('time_format');
 ?>
 <div class="wrap gd-audit gd-audit-database">
     <?php include GD_AUDIT_PLUGIN_DIR . 'includes/views/partials/nav-tabs.php'; ?>
@@ -52,7 +53,17 @@ $total_size = $summary['data_size'] + $summary['index_size'];
         <tbody>
             <?php if ($tables) : ?>
                 <?php foreach ($tables as $table) : ?>
-                    <?php $total_bytes = $table['data_length'] + $table['index_length']; ?>
+                    <?php
+                    $total_bytes       = $table['data_length'] + $table['index_length'];
+                    $created_timestamp = !empty($table['create_time']) ? strtotime($table['create_time']) : false;
+                    $updated_timestamp = !empty($table['update_time']) ? strtotime($table['update_time']) : false;
+                    $checked_timestamp = !empty($table['check_time']) ? strtotime($table['check_time']) : false;
+                    $created_display   = $created_timestamp ? wp_date($date_format, $created_timestamp) : __('Unknown', 'gd-audit');
+                    $updated_display   = $updated_timestamp ? wp_date($date_format, $updated_timestamp) : __('Unknown', 'gd-audit');
+                    $checked_display   = $checked_timestamp ? wp_date($date_format, $checked_timestamp) : __('Never', 'gd-audit');
+                    $row_format        = !empty($table['row_format']) ? $table['row_format'] : __('Unknown', 'gd-audit');
+                    $avg_row_length    = $table['avg_row_length'] > 0 ? size_format($table['avg_row_length'], 2) : __('N/A', 'gd-audit');
+                    ?>
                     <tr>
                         <td>
                             <strong><?php echo esc_html($table['name']); ?></strong>
@@ -81,6 +92,52 @@ $total_size = $summary['data_size'] + $summary['index_size'];
                         </td>
                         <td><?php echo esc_html(size_format($total_bytes, 2)); ?></td>
                         <td><?php echo esc_html($table['collation']); ?></td>
+                    </tr>
+                    <tr class="gd-audit__table-details-row">
+                        <td colspan="7">
+                            <details class="gd-audit__table-details">
+                                <summary>
+                                    <span class="gd-audit__details-label">
+                                        <?php printf(esc_html__('Details for %s', 'gd-audit'), esc_html($table['name'])); ?>
+                                    </span>
+                                    <span class="gd-audit__details-meta">
+                                        <?php printf(esc_html__('Auto increment: %s', 'gd-audit'), esc_html(number_format_i18n($table['auto_increment']))); ?>
+                                    </span>
+                                </summary>
+                                <div class="gd-audit__table-details-grid">
+                                    <div>
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Row format', 'gd-audit'); ?></p>
+                                        <p class="gd-audit__detail-value"><?php echo esc_html($row_format); ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Average row length', 'gd-audit'); ?></p>
+                                        <p class="gd-audit__detail-value"><?php echo esc_html($avg_row_length); ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Free space', 'gd-audit'); ?></p>
+                                        <p class="gd-audit__detail-value"><?php echo esc_html(size_format($table['data_free'], 2)); ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Created at', 'gd-audit'); ?></p>
+                                        <p class="gd-audit__detail-value"><?php echo esc_html($created_display); ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Updated at', 'gd-audit'); ?></p>
+                                        <p class="gd-audit__detail-value"><?php echo esc_html($updated_display); ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Last checked', 'gd-audit'); ?></p>
+                                        <p class="gd-audit__detail-value"><?php echo esc_html($checked_display); ?></p>
+                                    </div>
+                                </div>
+                                <?php if (!empty($table['comment'])) : ?>
+                                    <div class="gd-audit__table-details-note">
+                                        <p class="gd-audit__detail-label"><?php esc_html_e('Table comment', 'gd-audit'); ?></p>
+                                        <p class="gd-audit__detail-value"><?php echo esc_html($table['comment']); ?></p>
+                                    </div>
+                                <?php endif; ?>
+                            </details>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else : ?>

@@ -36,6 +36,11 @@ class GDAuditDatabaseInspector {
                 'comment'       => $row['Comment'],
                 'is_wp_table'   => strpos($row['Name'], $wpdb->prefix) === 0,
                 'size_bytes'    => ((int) $row['Data_length']) + ((int) $row['Index_length']),
+                'row_format'    => isset($row['Row_format']) ? $row['Row_format'] : '',
+                'avg_row_length'=> isset($row['Avg_row_length']) ? (int) $row['Avg_row_length'] : 0,
+                'create_time'   => isset($row['Create_time']) ? $row['Create_time'] : null,
+                'update_time'   => isset($row['Update_time']) ? $row['Update_time'] : null,
+                'check_time'    => isset($row['Check_time']) ? $row['Check_time'] : null,
             ];
         }
 
