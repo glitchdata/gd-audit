@@ -73,10 +73,13 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                 <?php else : ?>
                                     <span class="gd-audit__badge is-inactive"><?php esc_html_e('Custom', 'gd-audit'); ?></span>
                                 <?php endif; ?>
-                                <?php if (!empty($table['comment'])) : ?>
-                                    <?php echo esc_html($table['comment']); ?>
-                                <?php endif; ?>
                             </p>
+                            <?php if (!empty($table['comment'])) : ?>
+                                <p class="gd-audit__table-summary">
+                                    <span class="gd-audit__table-summary-label"><?php esc_html_e('Summary:', 'gd-audit'); ?></span>
+                                    <?php echo esc_html($table['comment']); ?>
+                                </p>
+                            <?php endif; ?>
                             <details class="gd-audit__table-details">
                                 <summary class="gd-audit__table-details-summary">
                                     <span class="gd-audit__details-icon" aria-hidden="true"></span>
@@ -139,12 +142,6 @@ $date_format = get_option('date_format') . ' ' . get_option('time_format');
                                                     ?>
                                                 </p>
                                             <?php endif; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                    <?php if (!empty($table['comment'])) : ?>
-                                        <div class="gd-audit__table-details-note">
-                                            <p class="gd-audit__detail-label"><?php esc_html_e('Table comment', 'gd-audit'); ?></p>
-                                            <p class="gd-audit__detail-value"><?php echo esc_html($table['comment']); ?></p>
                                         </div>
                                     <?php endif; ?>
                                 </div>

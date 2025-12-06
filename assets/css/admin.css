@@ -335,10 +335,14 @@
     gap: 12px;
 }
 
-.gd-audit__table-details-note {
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid #e0e0e0;
+.gd-audit__table-summary {
+    margin: 6px 0 0;
+    color: #4c4c4c;
+}
+
+.gd-audit__table-summary-label {
+    font-weight: 600;
+    margin-right: 4px;
 }
 
 .gd-audit__table-details-columns {
