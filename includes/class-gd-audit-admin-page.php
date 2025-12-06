@@ -98,6 +98,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Posts', 'gd-audit'),
+            __('Posts', 'gd-audit'),
+            'manage_options',
+            'gd-audit-posts',
+            [$this, 'render_posts_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Plugins', 'gd-audit'),
             __('Plugins', 'gd-audit'),
             'manage_options',
@@ -145,6 +154,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-links',
             'gd-audit_page_gd-audit-images',
             'gd-audit_page_gd-audit-users',
+            'gd-audit_page_gd-audit-posts',
             'gd-audit_page_gd-audit-database',
             'gd-audit_page_gd-audit-config',
             'gd-audit_page_gd-audit-settings',
@@ -186,6 +196,27 @@ class GDAuditAdminPage {
         $retention_label     = $retention_days > 0
             ? sprintf(_n('%d day', '%d days', $retention_days, 'gd-audit'), $retention_days)
             : __('No limit', 'gd-audit');
+
+        $post_status_totals = $this->analytics->get_post_status_totals();
+        $published_total    = 0;
+        $draft_total        = 0;
+        $pending_total      = 0;
+        $all_posts_total    = 0;
+        foreach ($post_status_totals as $status_row) {
+            $count = (int) $status_row['count'];
+            $all_posts_total += $count;
+            switch ($status_row['status']) {
+                case 'publish':
+                    $published_total = $count;
+                    break;
+                case 'draft':
+                    $draft_total = $count;
+                    break;
+                case 'pending':
+                    $pending_total = $count;
+                    break;
+            }
+        }
 
         $plugins           = $this->plugin_inspector->get_plugins();
         $plugin_total      = count($plugins);
@@ -281,6 +312,18 @@ class GDAuditAdminPage {
                     sprintf(__('Roles tracked: %s', 'gd-audit'), number_format_i18n(count($role_rows))),
                 ],
                 'url'           => admin_url('admin.php?page=gd-audit-users'),
+            ],
+            [
+                'key'           => 'posts',
+                'label'         => __('Posts', 'gd-audit'),
+                'description'   => __('Monitor publishing velocity and queues.', 'gd-audit'),
+                'primary_value' => number_format_i18n($published_total),
+                'primary_label' => __('Published', 'gd-audit'),
+                'items'         => [
+                    sprintf(__('Drafts: %s', 'gd-audit'), number_format_i18n($draft_total)),
+                    sprintf(__('Pending: %s', 'gd-audit'), number_format_i18n($pending_total)),
+                ],
+                'url'           => admin_url('admin.php?page=gd-audit-posts'),
             ],
             [
                 'key'           => 'database',
@@ -401,6 +444,19 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays post activity analytics.
+     */
+    public function render_posts_page() {
+        $status_totals  = $this->analytics->get_post_status_totals();
+        $daily_activity = $this->analytics->get_daily_post_activity();
+        $top_authors    = $this->analytics->get_top_authors();
+        $recent_posts   = $this->analytics->get_recent_published_posts();
+        $nav_tabs       = $this->get_nav_tabs('posts');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/posts-page.php';
+    }
+
+    /**
      * Displays media library analytics.
      */
     public function render_images_page() {
@@ -470,6 +526,10 @@ class GDAuditAdminPage {
             'users' => [
                 'label' => __('Users', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-users'),
+            ],
+            'posts' => [
+                'label' => __('Posts', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-posts'),
             ],
             'plugins' => [
                 'label' => __('Plugins', 'gd-audit'),
