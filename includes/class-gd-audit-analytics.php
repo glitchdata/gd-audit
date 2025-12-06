@@ -589,6 +589,99 @@ class GDAuditAnalytics {
     }
 
     /**
+     * Summarizes WordPress Cron configuration, schedules, and upcoming events.
+     */
+    public function get_cron_overview($max_events = 10) {
+        $max_events = max(1, (int) $max_events);
+
+        $cron_enabled   = !defined('DISABLE_WP_CRON') || !DISABLE_WP_CRON;
+        $alternate_cron = defined('ALTERNATE_WP_CRON') && ALTERNATE_WP_CRON;
+        $lock_timeout   = defined('WP_CRON_LOCK_TIMEOUT') ? (int) WP_CRON_LOCK_TIMEOUT : 60;
+
+        $schedules_data = wp_get_schedules();
+        $schedules      = [];
+        foreach ($schedules_data as $name => $schedule) {
+            $schedules[] = [
+                'name'     => $name,
+                'label'    => isset($schedule['display']) ? $schedule['display'] : $name,
+                'interval' => isset($schedule['interval']) ? (int) $schedule['interval'] : 0,
+            ];
+        }
+
+        usort($schedules, function ($a, $b) {
+            return $a['interval'] <=> $b['interval'];
+        });
+
+        $cron_array      = _get_cron_array();
+        $events          = [];
+        $total_events    = 0;
+        $next_timestamp  = null;
+        $date_format     = get_option('date_format') . ' ' . get_option('time_format');
+        $now             = time();
+
+        if (is_array($cron_array) && !empty($cron_array)) {
+            ksort($cron_array, SORT_NUMERIC);
+            foreach ($cron_array as $timestamp => $hooks) {
+                if (null === $next_timestamp) {
+                    $next_timestamp = (int) $timestamp;
+                }
+
+                foreach ($hooks as $hook => $instances) {
+                    foreach ($instances as $signature => $event) {
+                        $total_events++;
+
+                        if (count($events) >= $max_events) {
+                            continue;
+                        }
+
+                        $events[] = [
+                            'hook'       => $hook,
+                            'schedule'   => isset($event['schedule']) ? $event['schedule'] : '',
+                            'timestamp'  => (int) $timestamp,
+                            'display'    => wp_date($date_format, (int) $timestamp),
+                            'time_diff'  => human_time_diff($now, (int) $timestamp),
+                            'is_past'    => $timestamp < $now,
+                            'args'       => isset($event['args']) ? (array) $event['args'] : [],
+                        ];
+                    }
+                }
+            }
+        }
+
+        $summary = [
+            'cron_enabled'   => $cron_enabled,
+            'alternate_cron' => $alternate_cron,
+            'lock_timeout'   => $lock_timeout,
+            'schedule_total' => count($schedules),
+            'event_total'    => $total_events,
+            'next_event'     => $next_timestamp ? wp_date($date_format, $next_timestamp) : null,
+            'next_event_diff'=> $next_timestamp ? human_time_diff($now, $next_timestamp) : null,
+        ];
+
+        $constants = [
+            [
+                'label' => 'DISABLE_WP_CRON',
+                'value' => defined('DISABLE_WP_CRON') ? (DISABLE_WP_CRON ? __('True', 'gd-audit') : __('False', 'gd-audit')) : __('Not defined', 'gd-audit'),
+            ],
+            [
+                'label' => 'ALTERNATE_WP_CRON',
+                'value' => defined('ALTERNATE_WP_CRON') ? (ALTERNATE_WP_CRON ? __('True', 'gd-audit') : __('False', 'gd-audit')) : __('Not defined', 'gd-audit'),
+            ],
+            [
+                'label' => 'WP_CRON_LOCK_TIMEOUT',
+                'value' => $lock_timeout . 's',
+            ],
+        ];
+
+        return [
+            'summary'   => $summary,
+            'events'    => $events,
+            'schedules' => $schedules,
+            'constants' => $constants,
+        ];
+    }
+
+    /**
      * Computes the aggregate size of all image attachments.
      */
     private function calculate_image_library_size() {

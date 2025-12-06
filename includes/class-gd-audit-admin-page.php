@@ -89,6 +89,15 @@ class GDAuditAdminPage {
 
         add_submenu_page(
             'gd-audit',
+            __('Cron', 'gd-audit'),
+            __('Cron', 'gd-audit'),
+            'manage_options',
+            'gd-audit-cron',
+            [$this, 'render_cron_page']
+        );
+
+        add_submenu_page(
+            'gd-audit',
             __('Users', 'gd-audit'),
             __('Users', 'gd-audit'),
             'manage_options',
@@ -156,6 +165,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-users',
             'gd-audit_page_gd-audit-posts',
             'gd-audit_page_gd-audit-database',
+            'gd-audit_page_gd-audit-cron',
             'gd-audit_page_gd-audit-config',
             'gd-audit_page_gd-audit-settings',
         ];
@@ -479,6 +489,16 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Displays WordPress cron diagnostics.
+     */
+    public function render_cron_page() {
+        $cron_overview = $this->analytics->get_cron_overview();
+        $nav_tabs      = $this->get_nav_tabs('cron');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/cron-page.php';
+    }
+
+    /**
      * Displays key WordPress configuration details.
      */
     public function render_config_page() {
@@ -522,6 +542,10 @@ class GDAuditAdminPage {
             'database' => [
                 'label' => __('DB', 'gd-audit'),
                 'url'   => admin_url('admin.php?page=gd-audit-database'),
+            ],
+            'cron' => [
+                'label' => __('Cron', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-cron'),
             ],
             'users' => [
                 'label' => __('Users', 'gd-audit'),
