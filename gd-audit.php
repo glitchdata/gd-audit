@@ -104,6 +104,76 @@ function gd_audit_bootstrap() {
 }
 add_action('plugins_loaded', 'gd_audit_bootstrap');
 
+/**
+ * Exports audit data as JSON when license is valid.
+ */
+function gd_audit_export_audit_data() {
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Permission denied.', 'gd-audit'), 403);
+    }
+
+    check_admin_referer('gd_audit_export');
+
+    $container   = gd_audit_bootstrap();
+    $settings    = $container->settings->get_settings();
+    $saved_key   = isset($settings['license_key']) ? (string) $settings['license_key'] : '';
+    $license_row = get_option('gd_audit_license_status', []);
+
+    $license_valid = $saved_key !== ''
+        && !empty($license_row['valid'])
+        && !empty($license_row['license_key'])
+        && $license_row['license_key'] === $saved_key;
+
+    if (!$license_valid) {
+        wp_die(__('License is not valid. Please validate before exporting.', 'gd-audit'), 403);
+    }
+
+    $analytics = $container->analytics;
+    $plugins   = $container->plugins->get_plugins();
+    $themes    = $container->themes->get_themes();
+    $tables    = $container->database->get_tables();
+
+    $data = [
+        'generated_at' => gmdate('c'),
+        'site'         => $analytics->get_site_configuration_overview(),
+        'posts'        => [
+            'status_totals'  => $analytics->get_post_status_totals(),
+            'daily_activity'  => $analytics->get_daily_post_activity(14),
+            'top_authors'     => $analytics->get_top_authors(30, 5),
+            'recent'          => $analytics->get_recent_published_posts(10),
+        ],
+        'users'        => [
+            'roles'           => $analytics->get_user_role_distribution(),
+            'recent'          => $analytics->get_recent_users(10),
+            'registrations'   => $analytics->get_user_registration_trend(14),
+        ],
+        'links'        => $analytics->get_link_analytics(['sample_size' => 75]),
+        'media'        => [
+            'overview'        => $analytics->get_image_overview(),
+            'recent'          => $analytics->get_recent_images(10),
+        ],
+        'plugins'      => $plugins,
+        'themes'       => $themes,
+        'database'     => [
+            'tables'  => $tables,
+            'summary' => $container->database->get_summary($tables),
+        ],
+        'license'      => [
+            'valid'      => !empty($license_row['valid']),
+            'checked_at' => isset($license_row['checked_at']) ? (int) $license_row['checked_at'] : null,
+        ],
+    ];
+
+    $filename = 'gd-audit-export-' . gmdate('Ymd-His') . '.json';
+    nocache_headers();
+    header('Content-Type: application/json; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+
+    echo wp_json_encode($data, JSON_PRETTY_PRINT);
+    exit;
+}
+add_action('admin_post_gd_audit_export', 'gd_audit_export_audit_data');
+
 
 /**
  * Removes the legacy audit log table since logging is deprecated.

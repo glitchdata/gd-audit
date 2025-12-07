@@ -12,6 +12,18 @@ if (!defined('ABSPATH')) {
     </p>
 
     <div class="gd-audit__panel">
+        <h2><?php esc_html_e('Export audit data', 'gd-audit'); ?></h2>
+        <p><?php esc_html_e('Download a JSON export of key audit information (posts, users, links, media, plugins, themes, database, and site config).', 'gd-audit'); ?></p>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+            <?php wp_nonce_field('gd_audit_export'); ?>
+            <input type="hidden" name="action" value="gd_audit_export" />
+            <button type="submit" class="button button-primary">
+                <?php esc_html_e('Download Audit Export', 'gd-audit'); ?>
+            </button>
+        </form>
+    </div>
+
+    <div class="gd-audit__panel">
         <h2><?php esc_html_e('Coming soon', 'gd-audit'); ?></h2>
         <p><?php esc_html_e('Advanced diagnostics and tools will appear here.', 'gd-audit'); ?></p>
     </div>
