@@ -11,9 +11,19 @@ function gd_audit_validate_license_ajax() {
         wp_send_json_error(['message' => __('License key is required.', 'gd-audit')]);
     }
 
-    // TODO: Replace with real validation logic, e.g., remote API call
-    $is_valid = preg_match('/^[A-Z0-9\-]{10,}$/', $license_key);
-    if ($is_valid) {
+    // Validate license via remote API
+    $api_url = 'https://license.glitchdata.com/license/' . urlencode($license_key);
+    $response = wp_remote_get($api_url, [
+        'timeout' => 15
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(['message' => __('Could not connect to license server.', 'gd-audit')]);
+    }
+
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+    if (isset($data['valid']) && $data['valid']) {
         wp_send_json_success(['message' => __('License is valid!', 'gd-audit')]);
     } else {
         wp_send_json_error(['message' => __('Invalid license key.', 'gd-audit')]);
