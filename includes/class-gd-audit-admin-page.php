@@ -180,6 +180,16 @@ class GDAuditAdminPage {
             [],
             GD_AUDIT_VERSION
         );
+        // Enqueue license validation JS only on settings page
+        if ($hook === 'gd-audit_page_gd-audit-settings') {
+            wp_enqueue_script(
+                'gd-audit-license-validation',
+                GD_AUDIT_PLUGIN_URL . 'assets/js/license-validation.js',
+                ['jquery'],
+                GD_AUDIT_VERSION,
+                true
+            );
+        }
     }
 
     /**

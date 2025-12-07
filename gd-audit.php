@@ -1,3 +1,25 @@
+/**
+ * AJAX handler for license validation.
+ */
+function gd_audit_validate_license_ajax() {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => __('Permission denied.', 'gd-audit')]);
+    }
+
+    $license_key = isset($_POST['license_key']) ? sanitize_text_field($_POST['license_key']) : '';
+    if (empty($license_key)) {
+        wp_send_json_error(['message' => __('License key is required.', 'gd-audit')]);
+    }
+
+    // TODO: Replace with real validation logic, e.g., remote API call
+    $is_valid = preg_match('/^[A-Z0-9\-]{10,}$/', $license_key);
+    if ($is_valid) {
+        wp_send_json_success(['message' => __('License is valid!', 'gd-audit')]);
+    } else {
+        wp_send_json_error(['message' => __('Invalid license key.', 'gd-audit')]);
+    }
+}
+add_action('wp_ajax_gd_audit_validate_license', 'gd_audit_validate_license_ajax');
 <?php
 /**
  * Plugin Name: GD Audit

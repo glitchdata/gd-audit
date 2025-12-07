@@ -28,6 +28,9 @@ if (!defined('ABSPATH')) {
                     <p class="description">
                         <?php esc_html_e('Paste the key from your purchase receipt. Leave blank to deactivate the license on this site.', 'gd-audit'); ?>
                     </p>
+                        <button type="button" id="gd-audit-validate-license" class="button button-secondary" style="margin-top:10px;">
+                            <?php esc_html_e('Validate License', 'gd-audit'); ?>
+                        </button>
                 </td>
             </tr>
         </table>
