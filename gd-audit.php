@@ -12,7 +12,7 @@ function gd_audit_validate_license_ajax() {
     }
 
     // Validate license via remote API
-    $api_url = 'https://license.glitchdata.com/license/' . urlencode($license_key);
+    $api_url = 'https://license.glitchdata.com/license/validate/' . urlencode($license_key);
     $response = wp_remote_get($api_url, [
         'timeout' => 15
     ]);
@@ -23,10 +23,15 @@ function gd_audit_validate_license_ajax() {
 
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
-    if (isset($data['valid']) && $data['valid']) {
-        wp_send_json_success(['message' => __('License is valid!', 'gd-audit')]);
+    if (is_array($data)) {
+        if (isset($data['valid']) && $data['valid']) {
+            wp_send_json_success(['message' => __('License is valid!', 'gd-audit')]);
+        } else {
+            wp_send_json_error(['message' => __('Invalid license key.', 'gd-audit')]);
+        }
     } else {
-        wp_send_json_error(['message' => __('Invalid license key.', 'gd-audit')]);
+        // Show raw response for debugging
+        wp_send_json_error(['message' => __('Unexpected response: ', 'gd-audit') . $body]);
     }
 }
 add_action('wp_ajax_gd_audit_validate_license', 'gd_audit_validate_license_ajax');
