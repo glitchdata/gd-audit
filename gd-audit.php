@@ -1,3 +1,4 @@
+<?php
 /**
  * AJAX handler for license validation.
  */
@@ -35,7 +36,6 @@ function gd_audit_validate_license_ajax() {
     }
 }
 add_action('wp_ajax_gd_audit_validate_license', 'gd_audit_validate_license_ajax');
-<?php
 /**
  * Plugin Name: GD Audit
  * Description: Lightweight audit tool for WordPress that displays key installation details into a dashboard.
