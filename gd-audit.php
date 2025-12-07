@@ -207,107 +207,119 @@ function gd_audit_export_audit_pdf() {
     $db_summary = $container->database->get_summary($tables);
     $site_conf = $analytics->get_site_configuration_overview();
 
-    $pdf = new FPDF();
-    $pdf->SetTitle('GD Audit Report');
-    $pdf->AddPage();
-    $pdf->SetFont('Helvetica', 'B', 16);
-    $pdf->Cell(0, 10, 'GD Audit Report', 0, 1, 'C');
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(0, 8, 'Generated: ' . gmdate('Y-m-d H:i:s') . ' UTC', 0, 1, 'C');
-    $pdf->Ln(4);
-
-    // Site configuration summary
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Site Configuration', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    foreach ($site_conf['summary'] as $card) {
-        $line = $card['label'] . ': ' . $card['value'];
-        if (!empty($card['meta'])) {
-            $line .= ' (' . $card['meta'] . ')';
+    // Clear any buffered output to avoid header issues
+    if (function_exists('ob_get_level')) {
+        while (ob_get_level() > 0) {
+            @ob_end_clean();
         }
-        $pdf->Cell(0, 6, $line, 0, 1);
     }
-    $pdf->Ln(4);
 
-    // Post stats
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Posts', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    foreach ($analytics->get_post_status_totals() as $row) {
-        $pdf->Cell(0, 6, $row['label'] . ': ' . $row['count'], 0, 1);
+    try {
+        $pdf = new FPDF();
+        $pdf->SetTitle('GD Audit Report');
+        $pdf->AddPage();
+        $pdf->SetFont('Helvetica', 'B', 16);
+        $pdf->Cell(0, 10, 'GD Audit Report', 0, 1, 'C');
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(0, 8, 'Generated: ' . gmdate('Y-m-d H:i:s') . ' UTC', 0, 1, 'C');
+        $pdf->Ln(4);
+
+        // Site configuration summary
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Site Configuration', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        foreach ($site_conf['summary'] as $card) {
+            $line = $card['label'] . ': ' . $card['value'];
+            if (!empty($card['meta'])) {
+                $line .= ' (' . $card['meta'] . ')';
+            }
+            $pdf->Cell(0, 6, $line, 0, 1);
+        }
+        $pdf->Ln(4);
+
+        // Post stats
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Posts', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        foreach ($analytics->get_post_status_totals() as $row) {
+            $pdf->Cell(0, 6, $row['label'] . ': ' . $row['count'], 0, 1);
+        }
+        $pdf->Ln(4);
+
+        // Users
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Users', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        $role_data = $analytics->get_user_role_distribution();
+        $pdf->Cell(0, 6, 'Total users: ' . $role_data['total'], 0, 1);
+        foreach ($role_data['roles'] as $role) {
+            $pdf->Cell(0, 6, $role['label'] . ': ' . $role['count'], 0, 1);
+        }
+        $pdf->Ln(4);
+
+        // Plugins
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Plugins', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(0, 6, 'Total: ' . count($plugins), 0, 1);
+        $active = count(array_filter($plugins, fn($p) => !empty($p['active'])));
+        $updates = count(array_filter($plugins, fn($p) => !empty($p['has_update'])));
+        $pdf->Cell(0, 6, 'Active: ' . $active . ' | Updates: ' . $updates, 0, 1);
+        $pdf->Ln(4);
+
+        // Themes
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Themes', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(0, 6, 'Total: ' . count($themes), 0, 1);
+        $active_theme = current(array_filter($themes, fn($t) => !empty($t['is_active'])));
+        if ($active_theme) {
+            $pdf->Cell(0, 6, 'Active: ' . $active_theme['name'] . ' ' . $active_theme['version'], 0, 1);
+        }
+        $theme_updates = count(array_filter($themes, fn($t) => !empty($t['has_update'])));
+        $pdf->Cell(0, 6, 'Updates: ' . $theme_updates, 0, 1);
+        $pdf->Ln(4);
+
+        // Database summary
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Database', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(0, 6, 'Tables: ' . $db_summary['total_tables'], 0, 1);
+        $pdf->Cell(0, 6, 'WP Tables: ' . $db_summary['wp_tables'], 0, 1);
+        $pdf->Cell(0, 6, 'Rows: ' . $db_summary['total_rows'], 0, 1);
+        $pdf->Ln(4);
+
+        // Links overview
+        $link_overview = $analytics->get_link_analytics(['sample_size' => 75]);
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Links', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(0, 6, 'Scanned posts: ' . $link_overview['overview']['scanned'], 0, 1);
+        $pdf->Cell(0, 6, 'Total links: ' . $link_overview['overview']['total'], 0, 1);
+        $pdf->Cell(0, 6, 'Internal: ' . $link_overview['overview']['internal'] . ' | External: ' . $link_overview['overview']['external'], 0, 1);
+        $pdf->Ln(4);
+
+        // Media overview
+        $media = $analytics->get_image_overview();
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'Media (Images)', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(0, 6, 'Total images: ' . $media['total'], 0, 1);
+        $pdf->Cell(0, 6, 'Total size (bytes): ' . $media['total_size'], 0, 1);
+        $pdf->Ln(4);
+
+        // License status
+        $pdf->SetFont('Helvetica', 'B', 12);
+        $pdf->Cell(0, 8, 'License', 0, 1);
+        $pdf->SetFont('Helvetica', '', 10);
+        $pdf->Cell(0, 6, 'Valid: yes', 0, 1);
+
+        $filename = 'gd-audit-report-' . gmdate('Ymd-His') . '.pdf';
+        nocache_headers();
+        $pdf->Output('D', $filename);
+    } catch (Exception $e) {
+        wp_die('PDF generation failed: ' . esc_html($e->getMessage()), 500);
     }
-    $pdf->Ln(4);
-
-    // Users
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Users', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    $role_data = $analytics->get_user_role_distribution();
-    $pdf->Cell(0, 6, 'Total users: ' . $role_data['total'], 0, 1);
-    foreach ($role_data['roles'] as $role) {
-        $pdf->Cell(0, 6, $role['label'] . ': ' . $role['count'], 0, 1);
-    }
-    $pdf->Ln(4);
-
-    // Plugins
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Plugins', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(0, 6, 'Total: ' . count($plugins), 0, 1);
-    $active = count(array_filter($plugins, fn($p) => !empty($p['active'])));
-    $updates = count(array_filter($plugins, fn($p) => !empty($p['has_update'])));
-    $pdf->Cell(0, 6, 'Active: ' . $active . ' | Updates: ' . $updates, 0, 1);
-    $pdf->Ln(4);
-
-    // Themes
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Themes', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(0, 6, 'Total: ' . count($themes), 0, 1);
-    $active_theme = current(array_filter($themes, fn($t) => !empty($t['is_active'])));
-    if ($active_theme) {
-        $pdf->Cell(0, 6, 'Active: ' . $active_theme['name'] . ' ' . $active_theme['version'], 0, 1);
-    }
-    $theme_updates = count(array_filter($themes, fn($t) => !empty($t['has_update'])));
-    $pdf->Cell(0, 6, 'Updates: ' . $theme_updates, 0, 1);
-    $pdf->Ln(4);
-
-    // Database summary
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Database', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(0, 6, 'Tables: ' . $db_summary['total_tables'], 0, 1);
-    $pdf->Cell(0, 6, 'WP Tables: ' . $db_summary['wp_tables'], 0, 1);
-    $pdf->Cell(0, 6, 'Rows: ' . $db_summary['total_rows'], 0, 1);
-    $pdf->Ln(4);
-
-    // Links overview
-    $link_overview = $analytics->get_link_analytics(['sample_size' => 75]);
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Links', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(0, 6, 'Scanned posts: ' . $link_overview['overview']['scanned'], 0, 1);
-    $pdf->Cell(0, 6, 'Total links: ' . $link_overview['overview']['total'], 0, 1);
-    $pdf->Cell(0, 6, 'Internal: ' . $link_overview['overview']['internal'] . ' | External: ' . $link_overview['overview']['external'], 0, 1);
-    $pdf->Ln(4);
-
-    // Media overview
-    $media = $analytics->get_image_overview();
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'Media (Images)', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(0, 6, 'Total images: ' . $media['total'], 0, 1);
-    $pdf->Cell(0, 6, 'Total size (bytes): ' . $media['total_size'], 0, 1);
-    $pdf->Ln(4);
-
-    // License status
-    $pdf->SetFont('Helvetica', 'B', 12);
-    $pdf->Cell(0, 8, 'License', 0, 1);
-    $pdf->SetFont('Helvetica', '', 10);
-    $pdf->Cell(0, 6, 'Valid: yes', 0, 1);
-
-    $filename = 'gd-audit-report-' . gmdate('Ymd-His') . '.pdf';
-    $pdf->Output('D', $filename);
     exit;
 }
 add_action('admin_post_gd_audit_export_pdf', 'gd_audit_export_audit_pdf');
