@@ -25,13 +25,28 @@ function gd_audit_validate_license_ajax() {
     $body = wp_remote_retrieve_body($response);
     $data = json_decode($body, true);
     if (is_array($data)) {
-        if (isset($data['valid']) && $data['valid']) {
+        if (!empty($data['valid'])) {
+            update_option('gd_audit_license_status', [
+                'valid'      => true,
+                'license_key'=> $license_key,
+                'checked_at' => time(),
+            ]);
             wp_send_json_success(['message' => __('License is valid!', 'gd-audit')]);
-        } else {
-            wp_send_json_error(['message' => __('Invalid license key.', 'gd-audit')]);
         }
+
+        update_option('gd_audit_license_status', [
+            'valid'      => false,
+            'license_key'=> $license_key,
+            'checked_at' => time(),
+        ]);
+        wp_send_json_error(['message' => __('Invalid license key.', 'gd-audit')]);
     } else {
-        // Show raw response for debugging
+        // Show raw response for debugging and mark invalid
+        update_option('gd_audit_license_status', [
+            'valid'      => false,
+            'license_key'=> $license_key,
+            'checked_at' => time(),
+        ]);
         wp_send_json_error(['message' => __('Unexpected response: ', 'gd-audit') . $body]);
     }
 }

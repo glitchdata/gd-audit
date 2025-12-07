@@ -149,6 +149,17 @@ class GDAuditAdminPage {
             'gd-audit-links',
             [$this, 'render_links_page']
         );
+
+        if ($this->is_license_valid()) {
+            add_submenu_page(
+                'gd-audit',
+                __('Advanced', 'gd-audit'),
+                __('Advanced', 'gd-audit'),
+                'manage_options',
+                'gd-audit-advanced',
+                [$this, 'render_advanced_page']
+            );
+        }
     }
 
     /**
@@ -168,6 +179,7 @@ class GDAuditAdminPage {
             'gd-audit_page_gd-audit-cron',
             'gd-audit_page_gd-audit-config',
             'gd-audit_page_gd-audit-settings',
+            'gd-audit_page_gd-audit-advanced',
         ];
 
         if (!in_array($hook, $allowed_hooks, true)) {
@@ -190,6 +202,14 @@ class GDAuditAdminPage {
                 true
             );
         }
+    }
+
+    /**
+     * Determines if the stored license status is valid.
+     */
+    private function is_license_valid() {
+        $status = get_option('gd_audit_license_status', []);
+        return !empty($status['valid']);
     }
 
     /**
@@ -520,6 +540,15 @@ class GDAuditAdminPage {
     }
 
     /**
+     * Renders the advanced page (premium features).
+     */
+    public function render_advanced_page() {
+        $nav_tabs = $this->get_nav_tabs('advanced');
+
+        include GD_AUDIT_PLUGIN_DIR . 'includes/views/advanced-page.php';
+    }
+
+    /**
      * Outputs the settings form.
      */
     public function render_settings_page() {
@@ -580,6 +609,13 @@ class GDAuditAdminPage {
                 'url'   => admin_url('admin.php?page=gd-audit-links'),
             ],
         ];
+
+        if ($this->is_license_valid()) {
+            $tabs['advanced'] = [
+                'label' => __('Advanced', 'gd-audit'),
+                'url'   => admin_url('admin.php?page=gd-audit-advanced'),
+            ];
+        }
 
         foreach ($tabs as $key => &$tab) {
             $tab['active'] = ($key === $current);
