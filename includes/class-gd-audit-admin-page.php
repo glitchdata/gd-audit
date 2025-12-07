@@ -208,8 +208,14 @@ class GDAuditAdminPage {
      * Determines if the stored license status is valid.
      */
     private function is_license_valid() {
+        $settings = $this->settings->get_settings();
+        $saved_key = isset($settings['license_key']) ? (string) $settings['license_key'] : '';
+        if ($saved_key === '') {
+            return false;
+        }
+
         $status = get_option('gd_audit_license_status', []);
-        return !empty($status['valid']);
+        return !empty($status['valid']) && !empty($status['license_key']) && $status['license_key'] === $saved_key;
     }
 
     /**

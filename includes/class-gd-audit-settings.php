@@ -53,6 +53,11 @@ class GDAuditSettings {
 
         $this->cache = $sanitized;
 
+        // If the license key is cleared, drop stored license status so Advanced stays hidden.
+        if ($sanitized['license_key'] === '') {
+            delete_option('gd_audit_license_status');
+        }
+
         return $sanitized;
     }
 }
