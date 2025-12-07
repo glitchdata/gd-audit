@@ -117,6 +117,8 @@ class FPDF
         $this->fontpath = dirname(__FILE__).'/';
         $this->CoreFonts = ['courier', 'helvetica', 'times', 'symbol', 'zapfdingbats'];
         $this->StdPageSizes = ['a3'=>[841.89,1190.55],'a4'=>[595.28,841.89],'a5'=>[420.94,595.28],'letter'=>[612,792],'legal'=>[612,1008]];
+        // Set scale factor before page size calculation to avoid division by zero
+        $this->k = ($unit=='pt') ? 1 : (($unit=='mm') ? 72/25.4 : (($unit=='cm') ? 72/2.54 : (($unit=='in') ? 72 : $this->Error('Incorrect unit: '.$unit))));
         $size = $this->_getpagesize($size);
         $this->DefPageSize = $size;
         $this->CurPageSize = $size;
@@ -133,7 +135,6 @@ class FPDF
             $this->Error('Incorrect orientation: '.$orientation);
         }
         $this->CurOrientation = $this->DefOrientation;
-        $this->k = ($unit=='pt') ? 1 : (($unit=='mm') ? 72/25.4 : (($unit=='cm') ? 72/2.54 : (($unit=='in') ? 72 : $this->Error('Incorrect unit: '.$unit))));
         $this->wPt = $this->w*$this->k;
         $this->hPt = $this->h*$this->k;
     }
