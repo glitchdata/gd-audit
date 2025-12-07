@@ -31,6 +31,9 @@ if (!defined('ABSPATH')) {
                         <button type="button" id="gd-audit-validate-license" class="button button-secondary" style="margin-top:10px;">
                             <?php esc_html_e('Validate License', 'gd-audit'); ?>
                         </button>
+                        <a class="button" style="margin-top:10px; margin-left:6px;" href="https://license.glitchdata.com/shop/GD-01" target="_blank" rel="noopener noreferrer">
+                            <?php esc_html_e('Purchase License', 'gd-audit'); ?>
+                        </a>
                 </td>
             </tr>
         </table>
