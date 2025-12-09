@@ -69,6 +69,8 @@ if (!defined('ABSPATH')) {
 define('GD_AUDIT_VERSION', '1.0.0');
 define('GD_AUDIT_PLUGIN_FILE', __FILE__);
 define('GD_AUDIT_LICENSE_VALIDATE_ENDPOINT', 'https://license.glitchdata.com/api/license/validate/');
+define('GD_AUDIT_LOG_RECEIVER_ENDPOINT', 'https://logs.glitchdata.com/api/logs');
+define('GD_AUDIT_LOG_RECEIVER_TOKEN', '');
 define('GD_AUDIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GD_AUDIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
@@ -324,6 +326,122 @@ function gd_audit_export_audit_pdf() {
     exit;
 }
 add_action('admin_post_gd_audit_export_pdf', 'gd_audit_export_audit_pdf');
+
+/**
+ * Returns the configured log receiver token.
+ */
+function gd_audit_get_log_receiver_token() {
+    $env_token = getenv('LOG_RECEIVER_TOKEN');
+    if (!empty($env_token)) {
+        return $env_token;
+    }
+
+    return defined('GD_AUDIT_LOG_RECEIVER_TOKEN') ? GD_AUDIT_LOG_RECEIVER_TOKEN : '';
+}
+
+/**
+ * Submits audit data to the external log receiver as JSON.
+ */
+function gd_audit_send_audit_log() {
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Permission denied.', 'gd-audit'), 403);
+    }
+
+    check_admin_referer('gd_audit_send_log');
+
+    $token = gd_audit_get_log_receiver_token();
+    if (empty($token)) {
+        wp_die(__('Log receiver token is not configured.', 'gd-audit'), 400);
+    }
+
+    $container   = gd_audit_bootstrap();
+    $settings    = $container->settings->get_settings();
+    $saved_key   = isset($settings['license_key']) ? (string) $settings['license_key'] : '';
+    $license_row = get_option('gd_audit_license_status', []);
+
+    $license_valid = $saved_key !== ''
+        && !empty($license_row['valid'])
+        && !empty($license_row['license_key'])
+        && $license_row['license_key'] === $saved_key;
+
+    if (!$license_valid) {
+        wp_die(__('License is not valid. Please validate before submitting.', 'gd-audit'), 403);
+    }
+
+    $analytics = $container->analytics;
+    $plugins   = $container->plugins->get_plugins();
+    $themes    = $container->themes->get_themes();
+    $tables    = $container->database->get_tables();
+
+    $data = [
+        'generated_at' => gmdate('c'),
+        'site'         => $analytics->get_site_configuration_overview(),
+        'posts'        => [
+            'status_totals'  => $analytics->get_post_status_totals(),
+            'daily_activity'  => $analytics->get_daily_post_activity(14),
+            'top_authors'     => $analytics->get_top_authors(30, 5),
+            'recent'          => $analytics->get_recent_published_posts(10),
+        ],
+        'users'        => [
+            'roles'           => $analytics->get_user_role_distribution(),
+            'recent'          => $analytics->get_recent_users(10),
+            'registrations'   => $analytics->get_user_registration_trend(14),
+        ],
+        'links'        => $analytics->get_link_analytics(['sample_size' => 75]),
+        'media'        => [
+            'overview'        => $analytics->get_image_overview(),
+            'recent'          => $analytics->get_recent_images(10),
+        ],
+        'plugins'      => $plugins,
+        'themes'       => $themes,
+        'database'     => [
+            'tables'  => $tables,
+            'summary' => $container->database->get_summary($tables),
+        ],
+        'license'      => [
+            'valid'      => !empty($license_row['valid']),
+            'checked_at' => isset($license_row['checked_at']) ? (int) $license_row['checked_at'] : null,
+        ],
+    ];
+
+    $payload = [
+        'type'        => 'external_event',
+        'user_id'     => get_current_user_id(),
+        'source'      => 'gd-audit',
+        'occurred_at' => gmdate('c'),
+        'context'     => $data,
+    ];
+
+    $response = wp_remote_post(GD_AUDIT_LOG_RECEIVER_ENDPOINT, [
+        'headers' => [
+            'Content-Type'  => 'application/json',
+            'X-Log-Token'   => $token,
+        ],
+        'body'    => wp_json_encode($payload),
+        'timeout' => 20,
+    ]);
+
+    if (is_wp_error($response)) {
+        wp_die(sprintf(
+            __('Failed to submit audit log: %s', 'gd-audit'),
+            esc_html($response->get_error_message())
+        ), 500);
+    }
+
+    $code = wp_remote_retrieve_response_code($response);
+    if ($code < 200 || $code >= 300) {
+        $body = wp_remote_retrieve_body($response);
+        wp_die(sprintf(
+            __('Log receiver returned an error (%1$s): %2$s', 'gd-audit'),
+            (int) $code,
+            esc_html($body)
+        ), 500);
+    }
+
+    wp_safe_redirect(add_query_arg('gd_audit_log_submitted', '1', wp_get_referer() ?: admin_url('admin.php?page=gd-audit-advanced')));
+    exit;
+}
+add_action('admin_post_gd_audit_send_log', 'gd_audit_send_audit_log');
 
 
 /**
