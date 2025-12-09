@@ -17,8 +17,8 @@ if (!defined('ABSPATH')) {
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
             <?php wp_nonce_field('gd_audit_export'); ?>
             <input type="hidden" name="action" value="gd_audit_export" />
-            <button type="submit" class="button button-primary">
-                <?php esc_html_e('Download Audit Export', 'gd-audit'); ?>
+            <button type="submit" name="gd_audit_export_json" class="button button-primary">
+                <?php esc_html_e('Download JSON Export', 'gd-audit'); ?>
             </button>
         </form>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:10px;">
