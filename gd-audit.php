@@ -68,7 +68,7 @@ if (!defined('ABSPATH')) {
 
 define('GD_AUDIT_VERSION', '1.0.0');
 define('GD_AUDIT_PLUGIN_FILE', __FILE__);
-define('GD_AUDIT_LICENSE_VALIDATE_ENDPOINT', 'https://license.glitchdata.com/license/validate/');
+define('GD_AUDIT_LICENSE_VALIDATE_ENDPOINT', 'https://license.glitchdata.com/api/license/validate/');
 define('GD_AUDIT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('GD_AUDIT_PLUGIN_URL', plugin_dir_url(__FILE__));
 
