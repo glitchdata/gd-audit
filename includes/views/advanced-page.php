@@ -85,6 +85,13 @@ if (!defined('ABSPATH')) {
                 <?php esc_html_e('Schedule Daily Log Submit', 'gd-audit'); ?>
             </button>
         </form>
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:10px;">
+            <?php wp_nonce_field('gd_audit_run_cron_log'); ?>
+            <input type="hidden" name="action" value="gd_audit_run_cron_log" />
+            <button type="submit" class="button">
+                <?php esc_html_e('Run Now (Cron Log)', 'gd-audit'); ?>
+            </button>
+        </form>
     </div>
 
     <div class="gd-audit__panel">

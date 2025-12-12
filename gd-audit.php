@@ -516,6 +516,28 @@ function gd_audit_send_audit_log() {
 add_action('admin_post_gd_audit_send_log', 'gd_audit_send_audit_log');
 
 /**
+ * Admin action to run the cron log submission immediately.
+ */
+function gd_audit_run_cron_log_now() {
+    if (!current_user_can('manage_options')) {
+        wp_die(__('Permission denied.', 'gd-audit'), 403);
+    }
+
+    check_admin_referer('gd_audit_run_cron_log');
+
+    gd_audit_cron_send_audit_log();
+
+    $last = get_option('gd_audit_log_status', []);
+    $message = __('Cron log run executed.', 'gd-audit');
+    if (!empty($last['message'])) {
+        $message .= ' ' . $last['message'];
+    }
+
+    wp_die(esc_html($message));
+}
+add_action('admin_post_gd_audit_run_cron_log', 'gd_audit_run_cron_log_now');
+
+/**
  * Cron handler to submit audit data daily.
  */
 function gd_audit_cron_send_audit_log() {
