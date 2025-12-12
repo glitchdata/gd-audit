@@ -340,6 +340,18 @@ function gd_audit_get_log_receiver_token() {
 }
 
 /**
+ * Stores the latest log submission status for diagnostics.
+ */
+function gd_audit_record_log_status($is_success, $message, array $context = []) {
+    update_option('gd_audit_log_status', [
+        'status'     => $is_success ? 'success' : 'error',
+        'message'    => $message,
+        'context'    => $context,
+        'updated_at' => time(),
+    ]);
+}
+
+/**
  * Builds the audit payload data; returns WP_Error on failure.
  */
 function gd_audit_prepare_audit_payload($user_id = 0, $source = 'gd-audit', $require_license = true) {
@@ -465,12 +477,20 @@ function gd_audit_send_audit_log() {
 
     if (is_wp_error($result)) {
         $error_message = rawurlencode($result->get_error_message());
+        gd_audit_record_log_status(false, $result->get_error_message(), [
+            'mode'      => isset($_POST['schedule_daily']) ? 'schedule+manual' : 'manual',
+            'error'     => $result->get_error_message(),
+        ]);
         wp_safe_redirect(add_query_arg([
             'gd_audit_log_error'     => $error_message,
             'gd_audit_log_scheduled' => $scheduled ? '1' : '0',
         ], $redirect));
         exit;
     }
+
+    gd_audit_record_log_status(true, __('Audit log submitted.', 'gd-audit'), [
+        'mode' => isset($_POST['schedule_daily']) ? 'schedule+manual' : 'manual',
+    ]);
 
     wp_safe_redirect(add_query_arg([
         'gd_audit_log_submitted' => '1',
@@ -486,15 +506,33 @@ add_action('admin_post_gd_audit_send_log', 'gd_audit_send_audit_log');
 function gd_audit_cron_send_audit_log() {
     $token = gd_audit_get_log_receiver_token();
     if (empty($token)) {
+        gd_audit_record_log_status(false, __('Log receiver token is not configured for cron.', 'gd-audit'), [
+            'mode' => 'cron',
+        ]);
         return;
     }
 
     $payload = gd_audit_prepare_audit_payload(0, 'gd-audit-cron', true);
     if (is_wp_error($payload)) {
+        gd_audit_record_log_status(false, $payload->get_error_message(), [
+            'mode'  => 'cron',
+            'error' => $payload->get_error_message(),
+        ]);
         return;
     }
 
-    gd_audit_send_payload_to_receiver($payload, $token);
+    $result = gd_audit_send_payload_to_receiver($payload, $token);
+    if (is_wp_error($result)) {
+        gd_audit_record_log_status(false, $result->get_error_message(), [
+            'mode'  => 'cron',
+            'error' => $result->get_error_message(),
+        ]);
+        return;
+    }
+
+    gd_audit_record_log_status(true, __('Audit log submitted via cron.', 'gd-audit'), [
+        'mode' => 'cron',
+    ]);
 }
 add_action('gd_audit_cron_send_audit_log', 'gd_audit_cron_send_audit_log');
 

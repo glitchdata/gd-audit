@@ -11,6 +11,7 @@ if (!defined('ABSPATH')) {
     $log_submitted = isset($_GET['gd_audit_log_submitted']);
     $log_scheduled = isset($_GET['gd_audit_log_scheduled']) && $_GET['gd_audit_log_scheduled'] === '1';
     $log_error     = isset($_GET['gd_audit_log_error']) ? sanitize_text_field(wp_unslash($_GET['gd_audit_log_error'])) : '';
+    $last_log      = get_option('gd_audit_log_status', []);
 
     if ($log_error) : ?>
         <div class="notice notice-error is-dismissible"><p>
@@ -27,6 +28,24 @@ if (!defined('ABSPATH')) {
         <div class="notice notice-info is-dismissible"><p>
             <?php esc_html_e('Daily audit log schedule created.', 'gd-audit'); ?>
         </p></div>
+    <?php endif; ?>
+    <?php if (!empty($last_log)) : ?>
+        <div class="notice notice-secondary is-dismissible">
+            <p>
+                <?php
+                $when = isset($last_log['updated_at']) ? sprintf(
+                    /* translators: %s: human time diff */
+                    __('Last log attempt: %s ago.', 'gd-audit'),
+                    human_time_diff($last_log['updated_at'])
+                ) : __('Last log attempt: unknown time.', 'gd-audit');
+
+                echo esc_html($when . ' Status: ' . ($last_log['status'] ?? 'unknown')); // translators: shown inline
+                if (!empty($last_log['message'])) {
+                    echo ' — ' . esc_html($last_log['message']);
+                }
+                ?>
+            </p>
+        </div>
     <?php endif; ?>
     <p class="gd-audit__lead">
         <?php esc_html_e('Premium insights are enabled because your license is valid.', 'gd-audit'); ?>
