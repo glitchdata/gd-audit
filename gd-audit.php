@@ -447,6 +447,16 @@ function gd_audit_send_audit_log() {
         wp_die(__('Log receiver token is not configured.', 'gd-audit'), 400);
     }
 
+    // If the request is to schedule daily submissions, create the cron event and return.
+    if (isset($_POST['schedule_daily'])) {
+        if (!wp_next_scheduled('gd_audit_cron_send_audit_log')) {
+            wp_schedule_event(time() + MINUTE_IN_SECONDS, 'daily', 'gd_audit_cron_send_audit_log');
+        }
+
+        wp_safe_redirect(add_query_arg('gd_audit_log_scheduled', '1', wp_get_referer() ?: admin_url('admin.php?page=gd-audit-advanced')));
+        exit;
+    }
+
     $payload = gd_audit_prepare_audit_payload(get_current_user_id(), 'gd-audit', true);
     if (is_wp_error($payload)) {
         wp_die(esc_html($payload->get_error_message()), 403);
@@ -483,29 +493,6 @@ function gd_audit_cron_send_audit_log() {
 }
 add_action('gd_audit_cron_send_audit_log', 'gd_audit_cron_send_audit_log');
 
-/**
- * Admin action to schedule daily audit log submission.
- */
-function gd_audit_schedule_daily_log_cron() {
-    if (!current_user_can('manage_options')) {
-        wp_die(__('Permission denied.', 'gd-audit'), 403);
-    }
-
-    check_admin_referer('gd_audit_schedule_log');
-
-    $token = gd_audit_get_log_receiver_token();
-    if (empty($token)) {
-        wp_die(__('Log receiver token is not configured.', 'gd-audit'), 400);
-    }
-
-    if (!wp_next_scheduled('gd_audit_cron_send_audit_log')) {
-        wp_schedule_event(time() + MINUTE_IN_SECONDS, 'daily', 'gd_audit_cron_send_audit_log');
-    }
-
-    wp_safe_redirect(add_query_arg('gd_audit_log_scheduled', '1', wp_get_referer() ?: admin_url('admin.php?page=gd-audit-advanced')));
-    exit;
-}
-add_action('admin_post_gd_audit_schedule_log_cron', 'gd_audit_schedule_daily_log_cron');
 
 
 /**

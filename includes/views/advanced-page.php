@@ -36,8 +36,9 @@ if (!defined('ABSPATH')) {
             </button>
         </form>
         <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:10px;">
-            <?php wp_nonce_field('gd_audit_schedule_log'); ?>
-            <input type="hidden" name="action" value="gd_audit_schedule_log_cron" />
+            <?php wp_nonce_field('gd_audit_send_log'); ?>
+            <input type="hidden" name="action" value="gd_audit_send_log" />
+            <input type="hidden" name="schedule_daily" value="1" />
             <button type="submit" class="button">
                 <?php esc_html_e('Schedule Daily Log Submit', 'gd-audit'); ?>
             </button>
